@@ -1,4 +1,5 @@
 from math import sin, cos, e
+import operator
 
 
 class ConstrainedFunctions:
@@ -25,20 +26,26 @@ class Rosenbrok:
         """
         http://en.wikipedia.org/wiki/Test_functions_for_optimization
         """
-        return (
-            {
-                "type": "cubic",
-                "fun": lambda x: (x[0] - 1.) ** 3. - x[1] + 1. <= 0
-            }, {
-                "type": "line",
-                "fun": lambda x: x[0] + x[1] - 2. <= 0
-            })
+        return {
+            "cubic":
+                {
+                    "fun": lambda x: (x[0] - 1.) ** 3. - x[1] + 1.,
+                    "op": operator.le,
+                    "target": 0
+                },
+            "line":
+                {
+                    "fun": lambda x: x[0] + x[1] - 2.,
+                    "op": operator.le,
+                    "target": 0
+                }
+        }
 
 
 class MishraBird:
 
     @staticmethod
-    def evalute(X):
+    def evaluate(X):
         x = X[0]
         y = X[1]
         a = 1. - cos(x)
@@ -54,5 +61,7 @@ class MishraBird:
         return (
             {
                 "type": "circle",
-                "func": lambda x: (x[0] + 5) ** 2 + (x[1] + 5) ** 2 < 25
+                "func": lambda x: (x[0] + 5) ** 2 + (x[1] + 5) ** 2,
+                "op": operator.lt,
+                "target": 25
             })

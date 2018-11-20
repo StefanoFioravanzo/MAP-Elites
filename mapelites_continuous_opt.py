@@ -1,4 +1,10 @@
 from map_elites.mapelites import MapElites
+from functions import Rosenbrok
+
+from functools import reduce
+import operator
+
+import numpy as np
 
 
 class MapElitesContinuousOpt(MapElites):
@@ -10,16 +16,38 @@ class MapElitesContinuousOpt(MapElites):
         """
         Map X solution to feature space dimension, meaning:
             - apply the constraints to a solution
+        :return: tuple of indexes
         """
+        b = tuple()
+
+        for ft in self.feature_dimensions:
+            desc = ft.feature_descriptor(x)
+            i = ft.discretize(desc)
+            b = b + (i,)
+
+        return b
 
     def performance_measure(self, x):
         """
         Apply the fitness continuous function to x
         """
-        pass
+        return Rosenbrok.evaluate(x)
 
+    # TODO: Ask the professor about this
     def generate_random_solution(self):
-        pass
+        """
+        To ease the bootstrap of the algorithm, we can generate
+        the first solutions in the feature space, so that we start
+        filling the bins
+        :return:
+        """
+        # Number of possible locations in the N-dimentional feature space
+        dims = reduce(operator.mul, [len(ft.bins) - 1 for ft in self.feature_dimensions])
 
-    def init_feature_dimentions(self):
-        pass
+
+        # TODO: For the moment we are just generating sample in the input space
+        # We do not know how to generate them in the feature space
+
+        dimensions = 2
+        random_sample = np.random.uniform(-10, 10, dimensions)
+        return random_sample

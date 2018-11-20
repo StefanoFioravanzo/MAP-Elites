@@ -2,23 +2,23 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+from ea_operators import gaussian_mutation
+
 
 class FeatureDimension:
     """
     Describes a feature dimension
     """
 
-    def __init__(self, name, feature_function, dtype, bins):
+    def __init__(self, name, feature_function, bins):
         """
         :param name: Name or description of the feature dimension
         :param feature_function: Feature function or simulation, given a candidate solution as input
-        :param dtype: Data type of the resulting dimension (e.g. float, bool, ...)
         :param bins: Array of bins, from starting value to last value of last bin
         """
         self.name = name
         # TODO: check feature function is indeed a function
         self.feature_function = feature_function
-        self.dtype = dtype
         self.bins = bins
 
     def feature_descriptor(self, x):
@@ -40,32 +40,56 @@ class FeatureDimension:
         return index
 
 
-# TODO: Define as abstract class
 class MapElites(ABC):
 
-    def __init__(self, iterations, initial_population, feature_dimensions):
+    def __init__(self, iterations, random_solutions, feature_dimensions):
+        """
+        :param iterations:
+        :param random_solutions:
+        :param feature_dimensions:
+        """
         self.iterations = iterations
-        self.initial_population = initial_population
-        # tuple with the length of each dimension
-        self.dimensions = feature_dimensions
-        # init ndarray with provided value
-        self.solutions = np.full(feature_dimensions, -np.inf)
-        self.performances = np.full(feature_dimensions, -np.inf)
+        self.random_solutions = random_solutions
+
+        # Check feature dimensions were initialized properly
+        if not isinstance(self.feature_dimensions, (list, tuple)) or \
+                any(isinstance(ft, FeatureDimension) for ft in self.feature_dimensions):
+            raise Exception(
+                f"MapElites: `feature_dimensions` must be either a list or a tuple "
+                f"object of {FeatureDimension.__name__} objects")
+        self.feature_dimensions = feature_dimensions
+
+        # get number of bins for each feature dimension
+        ft_bins = [len(self.bins) - 1 for ft in self.feature_dimensions]
+
+        # Map of Elites: Initialize data structures to store solutions and fitness values
+        self.solutions = np.full(ft_bins, (-np.inf, -np.inf), dtype=(float, 2))
+        self.performances = np.full(ft_bins, -np.inf)
 
     def generate_initial_population(self):
         # G the number of initial random solutions
-        for i in self.initial_population:
+        for _ in range(0, self.random_solutions):
             x = self.generate_random_solution()
             # add solution to elites computing features and performance
             self.place_in_mapelites(x)
 
     def run(self):
-        for i in self.iter:
+
+        # start by creating an initial set of random solutions
+        self.generate_initial_population()
+
+        for _ in range(0, self.iterations):
+            if self.stopping_criteria():
+                break
+
             # possible solution
             x = None
-            # TODO: random selection (+check for validity)
+            # get the index of a random individual
+            ind = self.random_selection(individuals=1)
+
             # TODO: random variation (+check for validity)
-            self.place_in_mapelites(x)
+            ind = gaussian_mutation(ind, 0, 1, 0.5)
+            self.place_in_mapelites(ind)
 
     def place_in_mapelites(self, x):
         """
@@ -86,6 +110,32 @@ class MapElites(ABC):
             self.performances[b] = perf
             self.solutions[b] = x
 
+    def random_selection(self, individuals=1):
+        """
+        Select an elite x from the current map of elites
+        The selection is done by selecting a random bin for each feature
+        dimension, until a bin with a value is found.
+        # TODO: To optimize this procedure we could keep a data structure that records the cells that have been filled
+        :param individuals: The number of individuals to randomly select
+        :return: A list of indices of the N random elites
+        """
+
+        def get_random_index():
+            indexes = tuple()
+            for ft in self.feature_dimensions:
+                rnd_ind = np.random.randint(0, len(ft.bins) - 1, 1)[0]
+                indexes = indexes + (rnd_ind,)
+            return indexes
+
+        inds = list()
+        for _ in range(0, individuals):
+            ind = get_random_index()
+            # we do not want to repeat entries
+            while ind in inds:
+                ind = get_random_index()
+            inds.append(ind)
+        return inds
+
     def plot_map_of_elites(self, dimentions):
         """
         Plot a heatmap of elits
@@ -93,6 +143,13 @@ class MapElites(ABC):
         :return:
         """
         pass
+
+    def stopping_criteria(self):
+        """
+        Any criteria to stop the simulation before the given number of runs
+        :return: True if the algorithm has to stop. False otherwise.
+        """
+        return False
 
     @abstractmethod
     def performance_measure(self, x):
