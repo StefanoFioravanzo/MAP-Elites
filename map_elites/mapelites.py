@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import logging
 
 import numpy as np
 
@@ -28,16 +29,18 @@ class FeatureDimension:
         :return:
         """
         # TODO: what to do besides just calling the function?
+        print(x)
         return self.feature_function(x)
 
     def discretize(self, value):
         """
         Get bin (index) of dimension from real value
         """
-        index = np.digitize([value], self.bins)
+        index = np.digitize([value], self.bins)[0]
         if index in [0, len(self.bins)]:
             raise Exception(f"Constraint {self.name}: value {value} outside of bins {self.bins}")
-        return index
+        # - 1 because digitize is 1-indexed
+        return index - 1
 
 
 class MapElites(ABC):
@@ -51,22 +54,25 @@ class MapElites(ABC):
         self.iterations = iterations
         self.random_solutions = random_solutions
 
+        self.feature_dimensions = feature_dimensions
         # Check feature dimensions were initialized properly
         if not isinstance(self.feature_dimensions, (list, tuple)) or \
-                any(isinstance(ft, FeatureDimension) for ft in self.feature_dimensions):
+                not all(isinstance(ft, FeatureDimension) for ft in self.feature_dimensions):
             raise Exception(
                 f"MapElites: `feature_dimensions` must be either a list or a tuple "
                 f"object of {FeatureDimension.__name__} objects")
-        self.feature_dimensions = feature_dimensions
 
         # get number of bins for each feature dimension
-        ft_bins = [len(self.bins) - 1 for ft in self.feature_dimensions]
+        ft_bins = [len(ft.bins) - 1 for ft in self.feature_dimensions]
 
         # Map of Elites: Initialize data structures to store solutions and fitness values
         self.solutions = np.full(ft_bins, (-np.inf, -np.inf), dtype=(float, 2))
         self.performances = np.full(ft_bins, -np.inf)
 
+        logging.info("Configuration completed.")
+
     def generate_initial_population(self):
+        logging.info("Generate initial population")
         # G the number of initial random solutions
         for _ in range(0, self.random_solutions):
             x = self.generate_random_solution()
@@ -78,17 +84,19 @@ class MapElites(ABC):
         # start by creating an initial set of random solutions
         self.generate_initial_population()
 
-        for _ in range(0, self.iterations):
+        for i in range(0, self.iterations):
+            logging.info(f"Iteration {i}")
             if self.stopping_criteria():
                 break
 
             # possible solution
             x = None
+            logging.info("Select and mutate.")
             # get the index of a random individual
-            ind = self.random_selection(individuals=1)
+            ind = self.random_selection(individuals=1)[0]
 
             # TODO: random variation (+check for validity)
-            ind = gaussian_mutation(ind, 0, 1, 0.5)
+            ind = gaussian_mutation(ind, 0, 1, 0.5)[0]
             self.place_in_mapelites(ind)
 
     def place_in_mapelites(self, x):
@@ -102,6 +110,7 @@ class MapElites(ABC):
                 -> place new solution in the cell
         :param x: genotype of a solution
         """
+        logging.info("Place in MapElites")
         b = self.map_x_to_b(x)
         perf = self.performance_measure(x)
 
@@ -117,23 +126,34 @@ class MapElites(ABC):
         dimension, until a bin with a value is found.
         # TODO: To optimize this procedure we could keep a data structure that records the cells that have been filled
         :param individuals: The number of individuals to randomly select
-        :return: A list of indices of the N random elites
+        :return: A list of N random elites
         """
 
-        def get_random_index():
+        def _get_random_index():
             indexes = tuple()
             for ft in self.feature_dimensions:
                 rnd_ind = np.random.randint(0, len(ft.bins) - 1, 1)[0]
                 indexes = indexes + (rnd_ind,)
             return indexes
 
+        def _is_nan(index):
+            """
+            Checks if the selected index points to a NaN solution (not yet initialized)
+            The solution is considered as NaN if any of the dimensions of the individual is NaN
+            :return:
+            """
+            return any([x == np.nan for x in self.solutions[index]])
+
+        # individuals
         inds = list()
+        idxs = list()
         for _ in range(0, individuals):
-            ind = get_random_index()
+            idx = _get_random_index()
             # we do not want to repeat entries
-            while ind in inds:
-                ind = get_random_index()
-            inds.append(ind)
+            while idx in idxs or _is_nan(idx):
+                idx = _get_random_index()
+            idxs.append(idx)
+            inds.append(self.solutions[idx])
         return inds
 
     def plot_map_of_elites(self, dimentions):

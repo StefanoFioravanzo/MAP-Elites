@@ -5,6 +5,7 @@ from functools import reduce
 import operator
 
 import numpy as np
+import logging
 
 
 class MapElitesContinuousOpt(MapElites):
@@ -18,19 +19,22 @@ class MapElitesContinuousOpt(MapElites):
             - apply the constraints to a solution
         :return: tuple of indexes
         """
+        logging.info("map x to b")
         b = tuple()
-
+        print(x)
         for ft in self.feature_dimensions:
             desc = ft.feature_descriptor(x)
             i = ft.discretize(desc)
             b = b + (i,)
 
+        logging.info(f"resulting b: {b}")
         return b
 
     def performance_measure(self, x):
         """
         Apply the fitness continuous function to x
         """
+        logging.info("calculate performance measure")
         return Rosenbrok.evaluate(x)
 
     # TODO: Ask the professor about this
@@ -41,6 +45,7 @@ class MapElitesContinuousOpt(MapElites):
         filling the bins
         :return:
         """
+        logging.info("generate random solution")
         # Number of possible locations in the N-dimentional feature space
         dims = reduce(operator.mul, [len(ft.bins) - 1 for ft in self.feature_dimensions])
 

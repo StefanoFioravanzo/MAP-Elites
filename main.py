@@ -3,7 +3,9 @@ from mapelites_continuous_opt import MapElitesContinuousOpt
 from functions import Rosenbrok
 
 import numpy as np
+import logging
 
+logging.basicConfig(level=logging.INFO)
 
 def main():
     rosenbrok_const = Rosenbrok.constraints()
@@ -18,6 +20,8 @@ def main():
 
     iterations = 10
     initial_population = 4
+
+    logging.info("Start map elites")
     map_E = MapElitesContinuousOpt(
         iterations=iterations,
         random_solutions=initial_population,
