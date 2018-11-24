@@ -1,4 +1,4 @@
-from map_elites.mapelites import MapElites
+from map_elites.mapelites import MapElites, FeatureDimension
 from functions import Rosenbrok
 
 from functools import reduce
@@ -46,10 +46,20 @@ class MapElitesContinuousOpt(MapElites):
         # Number of possible locations in the N-dimentional feature space
         dims = reduce(operator.mul, [len(ft.bins) - 1 for ft in self.feature_dimensions])
 
-
         # TODO: For the moment we are just generating samples in the input space
         # We do not know how to generate them in the feature space
 
         dimensions = 2
         random_sample = np.random.uniform(-10, 10, dimensions)
         return random_sample
+
+    def generate_feature_dimensins(self):
+        rosenbrok_const = Rosenbrok.constraints()
+
+        cubic_bins = [-np.inf, 0.0, 4.0, 6.0, 8.0, 10.0, np.inf]
+        cubic = FeatureDimension("cubic_function", rosenbrok_const['cubic']['fun'], cubic_bins)
+
+        line_bins = [-np.inf, 0.0, 4.0, 6.0, 8.0, 10.0, np.inf]
+        line = FeatureDimension("line_function", rosenbrok_const['line']['fun'], line_bins)
+
+        return [cubic, line]

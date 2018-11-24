@@ -4,8 +4,17 @@ import numpy as np
 import logging
 from tqdm import tqdm
 
-from .ea_operators import gaussian_mutation
+from .ea_operators import EaOperators
 from .plot_utils import plot_heatmap_2d
+
+_MUTATION_OPS = {
+    "GAUSSIAN": EaOperators.gaussian_mutation
+}
+
+_CROSSOVER_OPS = {
+    "UNIFORM": EaOperators.uniform_crossover,
+    "ONE_POINT": EaOperators.one_point_crossover
+}
 
 
 class FeatureDimension:
@@ -46,11 +55,17 @@ class FeatureDimension:
 
 class MapElites(ABC):
 
-    def __init__(self, iterations, random_solutions, feature_dimensions, notebook=False):
+    def __init__(self,
+                 iterations,
+                 random_solutions,
+                 mutation_op,
+                 mutation_args,
+                 crossover_op,
+                 crossover_args,
+                 notebook=False):
         """
         :param iterations:
         :param random_solutions:
-        :param feature_dimensions:
         :param notebook: True the code is executed inside an IPython Notebook.
         """
         self.notebook = notebook
@@ -58,7 +73,12 @@ class MapElites(ABC):
         self.iterations = iterations
         self.random_solutions = random_solutions
 
-        self.feature_dimensions = feature_dimensions
+        self.mutation_op = mutation_op
+        self.mutation_args = mutation_args
+        self.crossover_op = crossover_op
+        self.crossover_args = crossover_args
+
+        self.feature_dimensions = self.generate_feature_dimensins()
         # Check feature dimensions were initialized properly
         if not isinstance(self.feature_dimensions, (list, tuple)) or \
                 not all(isinstance(ft, FeatureDimension) for ft in self.feature_dimensions):
@@ -74,6 +94,41 @@ class MapElites(ABC):
         self.performances = np.full(ft_bins, np.inf)
 
         logging.info("Configuration completed.")
+
+    @staticmethod
+    def from_config(cls, config):
+        iterations = config['mapelites'].getint('iterations')
+        random_solutions = config['mapelites'].getint('initial_random_population')
+        notebook = config['env'].getboolean('notebook')
+
+        # get mutation and selection operators
+        mutation_op = config['mutation']['type']
+        mutation_args = dict()
+        if mutation_op == "GAUSSIAN":
+            mutation_args = {
+                "mu": config['mutation'].getfloat('mu'),
+                "sigma": config['mutation'].getfloat('sigma'),
+                "indpb": config['mutation'].getfloat('indpb')
+            }
+        mutation_fun = _MUTATION_OPS[mutation_op]
+
+        crossover_op = config['crossover']['type']
+        crossover_args = None
+        if crossover_op == "UNIFORM":
+            crossover_args = {
+                "indpb": config['crossover'].getfloat('indpb')
+            }
+        crossover_fun = _CROSSOVER_OPS[crossover_op]
+
+        return cls(
+            iterations=iterations,
+            random_solutions=random_solutions,
+            mutation_op=mutation_fun,
+            mutation_args=mutation_args,
+            crossover_op=crossover_fun,
+            crossover_args=crossover_args,
+            notebook=notebook
+        )
 
     def generate_initial_population(self):
         logging.info("Generate initial population")
@@ -103,7 +158,7 @@ class MapElites(ABC):
                 ind = self.random_selection(individuals=1)[0]
 
                 # TODO: random variation (+check for validity)
-                ind = gaussian_mutation(ind, 0, 1, 0.5)[0]
+                ind = self.mutation_op(ind, **self.mutation_args)[0]
                 self.place_in_mapelites(ind, pbar=pbar)
 
         # save results, display metrics and plot statistics
@@ -203,6 +258,12 @@ class MapElites(ABC):
         """
         return False
 
+    def validate_config(self):
+        """
+        Validate configuration file
+        """
+        raise NotImplementedError
+
     @abstractmethod
     def performance_measure(self, x):
         """
@@ -226,5 +287,13 @@ class MapElites(ABC):
         """
         Function to generate an initial random solution x
         :return: x, a random solution
+        """
+        pass
+
+    @abstractmethod
+    def generate_feature_dimensins(self):
+        """
+        Generate a list of FeatureDimension objects to define the feature dimension functions
+        :return: List of FeatureDimension objects
         """
         pass
