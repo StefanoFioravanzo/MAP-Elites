@@ -1,6 +1,7 @@
+import numpy as np
 import pandas as pd
 
-from bokeh.io import output_file, show
+from bokeh.io import output_file, show, output_notebook
 from bokeh.models import BasicTicker, ColorBar, ColumnDataSource, LinearColorMapper, PrintfTickFormatter
 from bokeh.plotting import figure
 from bokeh.transform import transform
@@ -23,6 +24,7 @@ def test_heat_map():
 
     # this is the colormap from the original NYTimes plot
     colors = ["#75968f", "#a5bab7", "#c9d9d3", "#e2e2e2", "#dfccce", "#ddb7b1", "#cc7878", "#933b41", "#550b1d"]
+    # for log scale just use LogColorMapper()
     mapper = LinearColorMapper(palette=colors, low=df.rate.min(), high=df.rate.max())
 
     p = figure(plot_width=800, plot_height=300, title="US Unemployment 1948—2016",
@@ -47,7 +49,7 @@ def test_heat_map():
     show(p)
 
 
-def plot_heatmap_2d(data, x_axis, y_axis, x_label, y_label, title="MapElites fitness map"):
+def plot_heatmap_2d(data, x_axis, y_axis, x_label, y_label, title="MapElites fitness map", notebook=False):
     """
     :param data: Assume a list of tuples in the form (value, x_value, y_value)
     :param x_axis: Array of strings with the ticks of x axis
@@ -56,11 +58,15 @@ def plot_heatmap_2d(data, x_axis, y_axis, x_label, y_label, title="MapElites fit
     :param y_label: Description of y axis
     """
     plot_data = pd.DataFrame(data, columns=[x_label, y_label, 'value']).reset_index()
+    plot_data.value = plot_data.value.astype(np.float64)
+    plot_data.fillna(0, inplace=True)
+    plot_data.replace([np.inf, -np.inf], 0, inplace=True)
+
     # convert `value` column to numeric type
     plot_data['value'] = plot_data['value'].apply(pd.to_numeric)
     
     source = ColumnDataSource(plot_data)
-    colors = ["#75968f", "#a5bab7", "#c9d9d3", "#e2e2e2", "#dfccce", "#ddb7b1", "#cc7878", "#933b41", "#550b1d"]
+    colors = ["#8c2d04", "#d94801", "#f16913", "#fd8d3c", "#fdae6b", "#fdd0a2", "#fee6ce", "#fff5eb"]
     mapper = LinearColorMapper(palette=colors, low=plot_data.value.min(), high=plot_data.value.max())
 
     p = figure(plot_width=800, plot_height=300, title=title,
@@ -81,17 +87,26 @@ def plot_heatmap_2d(data, x_axis, y_axis, x_label, y_label, title="MapElites fit
     p.axis.major_label_standoff = 0
     p.xaxis.major_label_orientation = 1.0
 
+    if notebook:
+        # enable notebook display
+        output_notebook()
     show(p)
 
-# test_heat_map()
-# Generate some random data
-import numpy as np
 
-values = np.reshape(np.random.random((5, 5)), (-1,))
-# The two axis must be represented as strings
-x_ax = ['0', '1', '2', '3', '4']
-y_ax = ['5', '6', '7', '8', '9']
+def main():
 
-data = np.stack([np.repeat(x_ax, len(y_ax)), np.tile(y_ax, len(x_ax)), values], axis=1)
+    # test_heat_map()
+    # Generate some random data
 
-plot_heatmap_2d(data, x_ax, y_ax, "X", "Y")
+    values = np.reshape(np.random.random((5, 5)), (-1,))
+    # The two axis must be represented as strings
+    x_ax = ['0', '1', '2', '3', '4']
+    y_ax = ['5', '6', '7', '8', '9']
+
+    data = np.stack([np.repeat(x_ax, len(y_ax)), np.tile(y_ax, len(x_ax)), values], axis=1)
+
+    plot_heatmap_2d(data, x_ax, y_ax, "X", "Y")
+
+
+if __name__ == "__main__":
+    main()

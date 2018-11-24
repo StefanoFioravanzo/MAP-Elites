@@ -19,14 +19,12 @@ class MapElitesContinuousOpt(MapElites):
             - apply the constraints to a solution
         :return: tuple of indexes
         """
-        logging.info("map x to b")
         b = tuple()
         for ft in self.feature_dimensions:
             desc = ft.feature_descriptor(x)
             i = ft.discretize(desc)
             b = b + (i,)
 
-        logging.info(f"resulting b: {b}")
         return b
 
     def performance_measure(self, x):
@@ -44,7 +42,7 @@ class MapElitesContinuousOpt(MapElites):
         filling the bins
         :return:
         """
-        logging.info("generate random solution")
+        logging.info("Generate random solution")
         # Number of possible locations in the N-dimentional feature space
         dims = reduce(operator.mul, [len(ft.bins) - 1 for ft in self.feature_dimensions])
 

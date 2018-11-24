@@ -1,9 +1,11 @@
 from abc import ABC, abstractmethod
-import logging
 
 import numpy as np
+import logging
+from tqdm import tqdm
 
-from ea_operators import gaussian_mutation
+from .ea_operators import gaussian_mutation
+from .plot_utils import plot_heatmap_2d
 
 
 class FeatureDimension:
@@ -44,12 +46,15 @@ class FeatureDimension:
 
 class MapElites(ABC):
 
-    def __init__(self, iterations, random_solutions, feature_dimensions):
+    def __init__(self, iterations, random_solutions, feature_dimensions, notebook=False):
         """
         :param iterations:
         :param random_solutions:
         :param feature_dimensions:
+        :param notebook: True the code is executed inside an IPython Notebook.
         """
+        self.notebook = notebook
+
         self.iterations = iterations
         self.random_solutions = random_solutions
 
@@ -65,8 +70,8 @@ class MapElites(ABC):
         ft_bins = [len(ft.bins) - 1 for ft in self.feature_dimensions]
 
         # Map of Elites: Initialize data structures to store solutions and fitness values
-        self.solutions = np.full(ft_bins, (-np.inf, -np.inf), dtype=(float, 2))
-        self.performances = np.full(ft_bins, -np.inf)
+        self.solutions = np.full(ft_bins, (np.inf, np.inf), dtype=(float, 2))
+        self.performances = np.full(ft_bins, np.inf)
 
         logging.info("Configuration completed.")
 
@@ -78,27 +83,33 @@ class MapElites(ABC):
             # add solution to elites computing features and performance
             self.place_in_mapelites(x)
 
+        # self.plot_map_of_elites()
+
     def run(self):
 
         # start by creating an initial set of random solutions
         self.generate_initial_population()
 
-        for i in range(0, self.iterations):
-            logging.info(f"Iteration {i}")
-            if self.stopping_criteria():
-                break
+        with tqdm(total=self.iterations, desc="Iterations completed") as pbar:
+            for i in range(0, self.iterations):
+                logging.info(f"ITERATION {i}")
+                if self.stopping_criteria():
+                    break
 
-            # possible solution
-            x = None
-            logging.info("Select and mutate.")
-            # get the index of a random individual
-            ind = self.random_selection(individuals=1)[0]
+                # possible solution
+                x = None
+                logging.info("Select and mutate.")
+                # get the index of a random individual
+                ind = self.random_selection(individuals=1)[0]
 
-            # TODO: random variation (+check for validity)
-            ind = gaussian_mutation(ind, 0, 1, 0.5)[0]
-            self.place_in_mapelites(ind)
+                # TODO: random variation (+check for validity)
+                ind = gaussian_mutation(ind, 0, 1, 0.5)[0]
+                self.place_in_mapelites(ind, pbar=pbar)
 
-    def place_in_mapelites(self, x):
+        # save results, display metrics and plot statistics
+        self.plot_map_of_elites()
+
+    def place_in_mapelites(self, x, pbar=None):
         """
         Puts a solution inside the N-dimensional map of elites space.
         The following criteria is used:
@@ -113,10 +124,14 @@ class MapElites(ABC):
         perf = self.performance_measure(x)
 
         # TODO: What about the case when performances are equal?
-        if self.performances[b] < perf:
-            logging.info(f"Placing individual {x} at {b}")
+        if self.performances[b] > perf:
+            logging.info(f"PLACE: Placing individual {x} at {b} with perf: {perf}")
             self.performances[b] = perf
             self.solutions[b] = x
+        else:
+            logging.info(f"PLACE: Individual {x} rejected at {b} with perf: {perf} in favor of {self.performances[b]}")
+        if pbar is not None:
+            pbar.update(1)
 
     def random_selection(self, individuals=1):
         """
@@ -155,13 +170,31 @@ class MapElites(ABC):
             inds.append(self.solutions[idx])
         return inds
 
-    def plot_map_of_elites(self, dimensions):
+    def plot_map_of_elites(self):
         """
         Plot a heatmap of elites
-        :param dimensions:
-        :return:
         """
-        pass
+        def stringify_bin_axis(bins):
+            """
+            Takes as input an array of values describing the bins of the feature dimension.
+            We want to have as output an array of strings in the form of "from _start_value to _end_value"
+            that describe the range of each bin.
+            To do this we zip the bins array to itself (shifting one of the two by one element) to
+            produce the string. The take all the resulting strings but the first (which is the additional one
+            produced due to shifting)
+            """
+            return list(map(lambda x: f'from {x[0]} to {x[1]}', zip(np.insert(bins, 0, 0), bins)))[1:]
+
+        # Prepare data for plotting
+        values = np.reshape(self.performances, (-1, ))
+
+        x_ax = stringify_bin_axis(self.feature_dimensions[0].bins)
+        y_ax = stringify_bin_axis(self.feature_dimensions[1].bins)
+        # x_ax = list(map(lambda x: f"{x}", self.feature_dimensions[0].bins[1:]))
+        # y_ax = list(map(lambda x: f"{x}", self.feature_dimensions[1].bins[1:]))
+        data = np.stack([np.repeat(x_ax, len(y_ax)), np.tile(y_ax, len(x_ax)), values], axis=1)
+
+        plot_heatmap_2d(data, x_ax, y_ax, "X", "Y", notebook=self.notebook)
 
     def stopping_criteria(self):
         """

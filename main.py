@@ -1,25 +1,29 @@
+import numpy as np
+import logging
+
 from map_elites.mapelites import FeatureDimension
 from mapelites_continuous_opt import MapElitesContinuousOpt
 from functions import Rosenbrok
 
-import numpy as np
-import logging
+logging.basicConfig(filename="log.log", level=logging.INFO)
 
-logging.basicConfig(level=logging.INFO)
+# this should set the seed project wide
+np.random.seed(1)
+
 
 def main():
     rosenbrok_const = Rosenbrok.constraints()
 
-    cubic_bins = [-np.inf, 0.0, 4.0, 4.1, 4.2, 4.3, np.inf]
+    cubic_bins = [-np.inf, 0.0, 4.0, 6.0, 8.0, 10.0, np.inf]
     cubic = FeatureDimension("cubic_function", rosenbrok_const['cubic']['fun'], cubic_bins)
 
-    line_bins = [-np.inf, 0.0, 3.0, 3.1, 3.2, 3.3, np.inf]
+    line_bins = [-np.inf, 0.0, 4.0, 6.0, 8.0, 10.0, np.inf]
     line = FeatureDimension("line_function", rosenbrok_const['line']['fun'], line_bins)
 
     ft_dimensions = [cubic, line]
 
-    iterations = 10
-    initial_population = 4
+    iterations = 100
+    initial_population = 100
 
     logging.info("Start map elites")
     map_E = MapElitesContinuousOpt(
