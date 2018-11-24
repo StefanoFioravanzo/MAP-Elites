@@ -29,7 +29,6 @@ class FeatureDimension:
         :return:
         """
         # TODO: what to do besides just calling the function?
-        print(x)
         return self.feature_function(x)
 
     def discretize(self, value):
@@ -110,12 +109,12 @@ class MapElites(ABC):
                 -> place new solution in the cell
         :param x: genotype of a solution
         """
-        logging.info("Place in MapElites")
         b = self.map_x_to_b(x)
         perf = self.performance_measure(x)
 
         # TODO: What about the case when performances are equal?
         if self.performances[b] < perf:
+            logging.info(f"Placing individual {x} at {b}")
             self.performances[b] = perf
             self.solutions[b] = x
 
@@ -136,13 +135,13 @@ class MapElites(ABC):
                 indexes = indexes + (rnd_ind,)
             return indexes
 
-        def _is_nan(index):
+        def _is_not_initialized(index):
             """
-            Checks if the selected index points to a NaN solution (not yet initialized)
-            The solution is considered as NaN if any of the dimensions of the individual is NaN
+            Checks if the selected index points to a NaN or Inf solution (not yet initialized)
+            The solution is considered as NaN/Inf if any of the dimensions of the individual is NaN/Inf
             :return:
             """
-            return any([x == np.nan for x in self.solutions[index]])
+            return any([x == np.nan or np.abs(x) == np.inf for x in self.solutions[index]])
 
         # individuals
         inds = list()
@@ -150,16 +149,16 @@ class MapElites(ABC):
         for _ in range(0, individuals):
             idx = _get_random_index()
             # we do not want to repeat entries
-            while idx in idxs or _is_nan(idx):
+            while idx in idxs or _is_not_initialized(idx):
                 idx = _get_random_index()
             idxs.append(idx)
             inds.append(self.solutions[idx])
         return inds
 
-    def plot_map_of_elites(self, dimentions):
+    def plot_map_of_elites(self, dimensions):
         """
-        Plot a heatmap of elits
-        :param dimentions:
+        Plot a heatmap of elites
+        :param dimensions:
         :return:
         """
         pass
@@ -193,6 +192,6 @@ class MapElites(ABC):
     def generate_random_solution(self):
         """
         Function to generate an initial random solution x
-        :return: x, a random slution
+        :return: x, a random solution
         """
         pass

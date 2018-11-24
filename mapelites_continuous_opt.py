@@ -21,7 +21,6 @@ class MapElitesContinuousOpt(MapElites):
         """
         logging.info("map x to b")
         b = tuple()
-        print(x)
         for ft in self.feature_dimensions:
             desc = ft.feature_descriptor(x)
             i = ft.discretize(desc)
@@ -50,7 +49,7 @@ class MapElitesContinuousOpt(MapElites):
         dims = reduce(operator.mul, [len(ft.bins) - 1 for ft in self.feature_dimensions])
 
 
-        # TODO: For the moment we are just generating sample in the input space
+        # TODO: For the moment we are just generating samples in the input space
         # We do not know how to generate them in the feature space
 
         dimensions = 2
