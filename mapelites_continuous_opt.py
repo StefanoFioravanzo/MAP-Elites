@@ -63,3 +63,17 @@ class MapElitesContinuousOpt(MapElites):
         line = FeatureDimension("line_function", rosenbrok_const['line']['fun'], line_bins)
 
         return [cubic, line]
+
+
+if __name__ == "__main__":
+    import configparser
+
+    logging.basicConfig(filename="log.log", level=logging.INFO)
+    # this should set the seed project wide
+    np.random.seed(1)
+    config = configparser.ConfigParser()
+
+    config.read('config.ini')
+    logging.info("Start map elites")
+    map_E = MapElitesContinuousOpt.from_config(MapElitesContinuousOpt, config)
+    map_E.run()
