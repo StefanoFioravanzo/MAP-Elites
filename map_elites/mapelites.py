@@ -78,7 +78,7 @@ class MapElites(ABC):
         self.crossover_op = crossover_op
         self.crossover_args = crossover_args
 
-        self.feature_dimensions = self.generate_feature_dimensins()
+        self.feature_dimensions = self.generate_feature_dimensions()
         # Check feature dimensions were initialized properly
         if not isinstance(self.feature_dimensions, (list, tuple)) or \
                 not all(isinstance(ft, FeatureDimension) for ft in self.feature_dimensions):
@@ -291,7 +291,7 @@ class MapElites(ABC):
         pass
 
     @abstractmethod
-    def generate_feature_dimensins(self):
+    def generate_feature_dimensions(self):
         """
         Generate a list of FeatureDimension objects to define the feature dimension functions
         :return: List of FeatureDimension objects

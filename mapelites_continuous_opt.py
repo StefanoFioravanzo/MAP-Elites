@@ -53,7 +53,7 @@ class MapElitesContinuousOpt(MapElites):
         random_sample = np.random.uniform(-10, 10, dimensions)
         return random_sample
 
-    def generate_feature_dimensins(self):
+    def generate_feature_dimensions(self):
         rosenbrok_const = Rosenbrok.constraints()
 
         cubic_bins = [-np.inf, 0.0, 4.0, 6.0, 8.0, 10.0, np.inf]
