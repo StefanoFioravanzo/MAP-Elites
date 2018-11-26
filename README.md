@@ -10,8 +10,13 @@
 - Sarebbe carino creare degli slider per far cambiare in modo veloce il valore dei bin delle varie dimensioni (dipende dai tempi di esecuzione dell'algoritmo.
 
 
-#### Questions for professor:
+## Points to reflect and improve on
 
-- Come generare la popolazione iniziale. Se faccio una generazione random nello spazio degli input avrei una probabilita altissima di riempire solamente il bin 0,0 oppure quelli che vanno all'infinito
-- Quindi per generare la pop iniziale piuttosto sto nello spazio delle features
-- Al momento l'argoritmo assume uno spazio di input (quindi delle soluzioni) di semplici tuple di float. Quindi sto creando un array n-dimnesionale dove ogni cella contiene una tupla di float (la soluzione). La cosa forse più sarebbe quella di creare un oggetto (dataclass) che tenga la rappresentazione di una soluzione
+- Initial population generation. We can either generate the initial population in the genotype space (with no control over what bins in the features space will be filled) or in the feature space. In the second case we should find some way of doing that.
+- Should we think about supporting other *solutions* data types (apart from a tuple of float)
+
+## TODO
+
+- [ ] Make heatmap plotting available for > 2 dimensions
+- [ ] Add config file (logging.ini) based logging
+- [ ] Manage inf values in Bokeh

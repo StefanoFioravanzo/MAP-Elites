@@ -5,16 +5,7 @@ import logging
 from tqdm import tqdm
 
 from .ea_operators import EaOperators
-from .plot_utils import plot_heatmap_2d
-
-_MUTATION_OPS = {
-    "GAUSSIAN": EaOperators.gaussian_mutation
-}
-
-_CROSSOVER_OPS = {
-    "UNIFORM": EaOperators.uniform_crossover,
-    "ONE_POINT": EaOperators.one_point_crossover
-}
+from .plot_utils import plot_heatmap_2d, plot_heatmap_2d_seaborn
 
 
 class FeatureDimension:
@@ -101,24 +92,36 @@ class MapElites(ABC):
         random_solutions = config['mapelites'].getint('initial_random_population')
         notebook = config['env'].getboolean('notebook')
 
+        # get list of ea operators
+        ea_operators = [func for func in dir(EaOperators)
+                        if callable(getattr(EaOperators, func))
+                        and not func.startswith("__", 0, 2)
+                        ]
+
         # get mutation and selection operators
         mutation_op = config['mutation']['type']
-        mutation_args = dict()
+        mutation_fun = f"{str.lower(mutation_op)}_mutation"
+        if mutation_fun not in ea_operators:
+            raise ValueError(f"Mutation operator {mutation_op} not implemented.")
+        mutation_fun = getattr(EaOperators, mutation_fun)
+        mutation_args = None
         if mutation_op == "GAUSSIAN":
             mutation_args = {
                 "mu": config['mutation'].getfloat('mu'),
                 "sigma": config['mutation'].getfloat('sigma'),
                 "indpb": config['mutation'].getfloat('indpb')
             }
-        mutation_fun = _MUTATION_OPS[mutation_op]
 
         crossover_op = config['crossover']['type']
+        crossover_fun = f"{str.lower(crossover_op)}_crossover"
+        if crossover_fun not in ea_operators:
+            raise ValueError(f"Crossover operator {crossover_op} not implemented.")
+        crossover_fun = getattr(EaOperators, crossover_fun)
         crossover_args = None
         if crossover_op == "UNIFORM":
             crossover_args = {
                 "indpb": config['crossover'].getfloat('indpb')
             }
-        crossover_fun = _CROSSOVER_OPS[crossover_op]
 
         return cls(
             iterations=iterations,
@@ -238,7 +241,7 @@ class MapElites(ABC):
             produce the string. The take all the resulting strings but the first (which is the additional one
             produced due to shifting)
             """
-            return list(map(lambda x: f'from {x[0]} to {x[1]}', zip(np.insert(bins, 0, 0), bins)))[1:]
+            return list(map(lambda x: f'{x[0]}: {x[1]} to {x[2]}', zip(range(0, len(bins)), np.insert(bins, 0, 0), bins)))[1:]
 
         # Prepare data for plotting
         values = np.reshape(self.performances, (-1, ))
@@ -249,7 +252,7 @@ class MapElites(ABC):
         # y_ax = list(map(lambda x: f"{x}", self.feature_dimensions[1].bins[1:]))
         data = np.stack([np.repeat(x_ax, len(y_ax)), np.tile(y_ax, len(x_ax)), values], axis=1)
 
-        plot_heatmap_2d(data, x_ax, y_ax, "X", "Y", notebook=self.notebook)
+        plot_heatmap_2d_seaborn(data, x_ax, y_ax, "X", "Y", notebook=self.notebook)
 
     def stopping_criteria(self):
         """

@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 from bokeh.io import output_file, show, output_notebook
 from bokeh.models import BasicTicker, ColorBar, ColumnDataSource, LinearColorMapper, PrintfTickFormatter
@@ -61,6 +63,7 @@ def plot_heatmap_2d(data, x_axis, y_axis, x_label, y_label, title="MapElites fit
     plot_data.value = plot_data.value.astype(np.float64)
     plot_data.fillna(0, inplace=True)
     plot_data.replace([np.inf, -np.inf], 0, inplace=True)
+    plot_data.mask(np.nan, inplace=True)
 
     # convert `value` column to numeric type
     plot_data['value'] = plot_data['value'].apply(pd.to_numeric)
@@ -91,6 +94,21 @@ def plot_heatmap_2d(data, x_axis, y_axis, x_label, y_label, title="MapElites fit
         # enable notebook display
         output_notebook()
     show(p)
+
+
+def plot_heatmap_2d_seaborn(data, x_axis, y_axis, x_label, y_label, title="MapElites fitness map", notebook=False):
+    plot_data = pd.DataFrame(data, columns=[x_label, y_label, 'value']).reset_index()
+    plot_data.value = plot_data.value.astype(np.float64)
+    plot_data.fillna(0, inplace=True)
+    plot_data.replace([np.inf, -np.inf], np.nan, inplace=True)
+
+    pivot_data = plot_data.pivot("X", "Y", "value")
+
+    mask = pivot_data.isnull()
+    ax = sns.heatmap(pivot_data, mask=mask)
+    ax.invert_yaxis()
+    plt.show()
+
 
 
 def main():
