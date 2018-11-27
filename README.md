@@ -1,19 +1,16 @@
 ## MAP-Elites for Constrained Optimization
 
-#### TODO Notes
+Project structure:
 
-- Creare un algoritmo più generale possibile
-	- Utente deve poter inserire in modo dinamico i constraints e le funzioni obiettivo
-	- Come anche i limit dei constraints e la definizione dei bins
-- Nel caso i constraints siano più di due si dovrebbe cercare di avere comunque una visualizzazione. Per esempio nel caso si abbiamo 3 o 4 dimensioni si può avere una visualizzazione dei quelle dim all'interno di ogni singolo quadretto della mappa 2d.
-- La cella in basso a sinistra rappresenta il caso in cui tutti i constraints sono soddisfatti (no errore). In pratica gli assi della mappa rappresentano quanto ci discostiamo dal valore corretto.
-- Sarebbe carino creare degli slider per far cambiare in modo veloce il valore dei bin delle varie dimensioni (dipende dai tempi di esecuzione dell'algoritmo.
+- `/map_elites`:
+	- `ea_operators.py`: implementations of crossover/mutation operators
+	- `mapelites.py`: main class implementing MapElites. It is an abstract class that requires the implementation of the specific use-case
+	- `plot_utils.py`: some functions to plot heatmaps (map elites feature dimension visualizations)
+- `config.ini`: configuration parameters of the MapElites algorithm
+- `functions.py`: helper file implementing continuous functions
+- `mapelites_continuous_opt.ipynb`: Jupyter notebook implementing the class `MapElitesContinuousOpt` with subclasses the abstract class `MapElites` to use MAP-Elites with continuous constrained optimization
 
-
-## Points to reflect and improve on
-
-- Initial population generation. We can either generate the initial population in the genotype space (with no control over what bins in the features space will be filled) or in the feature space. In the second case we should find some way of doing that.
-- Should we think about supporting other *solutions* data types (apart from a tuple of float)
+To play with the algorithm, just change the parameters in the `config.ini` file and run the cells in the Jupyter notebook.
 
 ## TODO
 
