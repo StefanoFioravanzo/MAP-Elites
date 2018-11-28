@@ -1,54 +1,14 @@
+import math
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from matplotlib.colors import LogNorm
 
 from bokeh.io import output_file, show, output_notebook
 from bokeh.models import BasicTicker, ColorBar, ColumnDataSource, LinearColorMapper, PrintfTickFormatter
 from bokeh.plotting import figure
 from bokeh.transform import transform
-
-
-def test_heat_map():
-    from bokeh.sampledata.unemployment1948 import data
-    output_file("unemploymemt.html")
-
-    data.Year = data.Year.astype(str)
-    data = data.set_index('Year')
-    data.drop('Annual', axis=1, inplace=True)
-    data.columns.name = 'Month'
-
-    # reshape to 1D array or rates with a month and year for each row.
-    df = pd.DataFrame(data.stack(), columns=['rate']).reset_index()
-    print(df)
-    
-    source = ColumnDataSource(df)
-
-    # this is the colormap from the original NYTimes plot
-    colors = ["#75968f", "#a5bab7", "#c9d9d3", "#e2e2e2", "#dfccce", "#ddb7b1", "#cc7878", "#933b41", "#550b1d"]
-    # for log scale just use LogColorMapper()
-    mapper = LinearColorMapper(palette=colors, low=df.rate.min(), high=df.rate.max())
-
-    p = figure(plot_width=800, plot_height=300, title="US Unemployment 1948—2016",
-               x_range=list(data.index), y_range=list(reversed(data.columns)),
-               toolbar_location=None, tools="", x_axis_location="above")
-
-    p.rect(x="Year", y="Month", width=1, height=1, source=source,
-           line_color=None, fill_color=transform('rate', mapper))
-
-    color_bar = ColorBar(color_mapper=mapper, location=(0, 0),
-                         ticker=BasicTicker(desired_num_ticks=len(colors)),
-                         formatter=PrintfTickFormatter(format="%d%%"))
-
-    p.add_layout(color_bar, 'right')
-
-    p.axis.axis_line_color = None
-    p.axis.major_tick_line_color = None
-    p.axis.major_label_text_font_size = "5pt"
-    p.axis.major_label_standoff = 0
-    p.xaxis.major_label_orientation = 1.0
-
-    show(p)
 
 
 def plot_heatmap_2d(data, x_axis, y_axis, x_label, y_label, title="MapElites fitness map", notebook=False):
@@ -104,14 +64,28 @@ def plot_heatmap_2d_seaborn(data, x_axis, y_axis, x_label, y_label, title="MapEl
 
     pivot_data = plot_data.pivot("X", "Y", "value")
 
+    # Plot cell colors in a log scale
+    min = pivot_data.min().min()
+    max = pivot_data.max().max()
+    log_norm = LogNorm(vmin=min, vmax=max)
+    cbar_ticks = [math.pow(10, i)
+                  for i in range(math.floor(math.log10(min)), 1 + math.ceil(math.log10(max)))]
+
     mask = pivot_data.isnull()
-    ax = sns.heatmap(pivot_data, mask=mask)
+    ax = sns.heatmap(pivot_data, mask=mask, norm=log_norm, cbar_kws={"ticks": cbar_ticks})
+    ax.set_title(f"{title} - white cells are null values (not initialized)")
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    
     ax.invert_yaxis()
     plt.show()
 
 
 
 def main():
+    """
+    Test plot utils by calling this module directly
+    """
 
     # test_heat_map()
     # Generate some random data
