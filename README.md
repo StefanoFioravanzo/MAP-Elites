@@ -10,7 +10,7 @@ Project structure:
 - `functions.py`: helper file implementing continuous functions
 - `mapelites_continuous_opt.ipynb`: Jupyter notebook implementing the class `MapElitesContinuousOpt` with subclasses the abstract class `MapElites` to use MAP-Elites with continuous constrained optimization
 
-To play with the algorithm, just change the parameters in the `config.ini` file and run the cells in the Jupyter notebook.
+To play with the algorithm, just change the parameters in the `config.ini` file and run the cells in the Jupyter notebook, or run the `mapelites_continuous_opt.py` script.
 
 ## TODO
 
