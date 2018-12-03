@@ -26,6 +26,8 @@ config = configparser.ConfigParser()
 class MapElitesContinuousOpt(MapElites):
 
     def __init__(self, *args, **kwargs):
+        # function object instance to be optimized
+        self.F = Rosenbrok(dimensions=2)
         super(MapElitesContinuousOpt, self).__init__(*args, **kwargs)
 
     def map_x_to_b(self, x):
@@ -47,7 +49,7 @@ class MapElitesContinuousOpt(MapElites):
         Apply the fitness continuous function to x
         """
         logging.info("calculate performance measure")
-        return Rosenbrok.evaluate(x)
+        return self.F.evaluate(x)
 
     # TODO: Ask the professor about this
     def generate_random_solution(self):
@@ -55,21 +57,16 @@ class MapElitesContinuousOpt(MapElites):
         To ease the bootstrap of the algorithm, we can generate
         the first solutions in the feature space, so that we start
         filling the bins
-        :return:
         """
         logging.info("Generate random solution")
-        # Number of possible locations in the N-dimentional feature space
-        dims = reduce(operator.mul, [len(ft.bins) - 1 for ft in self.feature_dimensions])
 
-        # TODO: For the moment we are just generating samples in the input space
-        # We do not know how to generate them in the feature space
-
-        dimensions = 2
-        random_sample = np.random.uniform(-10, 10, dimensions)
-        return random_sample
+        dimensions = self.F.get_domain()
+        return np.array([
+            np.random.uniform(d[0], d[1], 1)[0] for d in dimensions
+        ])
 
     def generate_feature_dimensions(self):
-        rosenbrok_const = Rosenbrok.constraints()
+        rosenbrok_const = self.F.constraints()
 
         cubic_bins = [-np.inf, 0.0, 4.0, 6.0, 8.0, 10.0, np.inf]
         cubic = FeatureDimension("cubic_function", rosenbrok_const['cubic']['fun'], cubic_bins)
@@ -78,9 +75,6 @@ class MapElitesContinuousOpt(MapElites):
         line = FeatureDimension("line_function", rosenbrok_const['line']['fun'], line_bins)
 
         return [cubic, line]
-
-
-# In[3]:
 
 
 # read configuration file

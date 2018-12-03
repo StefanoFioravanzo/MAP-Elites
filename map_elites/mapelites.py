@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 
+import math
+import operator
 import numpy as np
+import pandas as pd
 import logging
 from tqdm import tqdm
 
@@ -53,13 +56,22 @@ class MapElites(ABC):
                  mutation_args,
                  crossover_op,
                  crossover_args,
+                 minimization=True,
                  notebook=False):
         """
         :param iterations:
         :param random_solutions:
+        :param minimization: True if solving a minimization problem. False if solving a maximization problem.
         :param notebook: True the code is executed inside an IPython Notebook.
         """
         self.notebook = notebook
+
+        self.minimization = minimization
+        # set the choice operator either to do a minimization or a maximization
+        if self.minimization:
+            self.place_operator = operator.lt
+        else:
+            self.place_operator = operator.ge
 
         self.iterations = iterations
         self.random_solutions = random_solutions
@@ -91,6 +103,7 @@ class MapElites(ABC):
         iterations = config['mapelites'].getint('iterations')
         random_solutions = config['mapelites'].getint('initial_random_population')
         notebook = config['env'].getboolean('notebook')
+        minimization = config['mapelites'].getboolean('minimization')
 
         # get list of ea operators
         ea_operators = [func for func in dir(EaOperators)
@@ -130,6 +143,7 @@ class MapElites(ABC):
             mutation_args=mutation_args,
             crossover_op=crossover_fun,
             crossover_args=crossover_args,
+            minimization=minimization,
             notebook=notebook
         )
 
@@ -181,8 +195,7 @@ class MapElites(ABC):
         b = self.map_x_to_b(x)
         perf = self.performance_measure(x)
 
-        # TODO: What about the case when performances are equal?
-        if self.performances[b] > perf:
+        if self.place_operator(perf, self.performances[b]):
             logging.info(f"PLACE: Placing individual {x} at {b} with perf: {perf}")
             self.performances[b] = perf
             self.solutions[b] = x
@@ -253,6 +266,48 @@ class MapElites(ABC):
         data = np.stack([np.repeat(x_ax, len(y_ax)), np.tile(y_ax, len(x_ax)), values], axis=1)
 
         plot_heatmap_2d_seaborn(data, x_ax, y_ax, "X", "Y", notebook=self.notebook)
+
+    def plot_map_of_elites_n_dimensional(self):
+        def stringify_bin_axis(bins):
+            """
+            Takes as input an array of values describing the bins of the feature dimension.
+            We want to have as output an array of strings in the form of "from _start_value to _end_value"
+            that describe the range of each bin.
+            To do this we zip the bins array to itself (shifting one of the two by one element) to
+            produce the string. The take all the resulting strings but the first (which is the additional one
+            produced due to shifting)
+            """
+            return list(
+                map(lambda x: f'{x[0]}: {x[1]} to {x[2]}', zip(range(0, len(bins)), np.insert(bins, 0, 0), bins)))[1:]
+
+        if len(self.performances.shape) == 2:
+            # Prepare data for plotting
+            values = np.reshape(self.performances, (-1,))
+
+            x_ax = stringify_bin_axis(self.feature_dimensions[0].bins)
+            y_ax = stringify_bin_axis(self.feature_dimensions[1].bins)
+            # x_ax = list(map(lambda x: f"{x}", self.feature_dimensions[0].bins[1:]))
+            # y_ax = list(map(lambda x: f"{x}", self.feature_dimensions[1].bins[1:]))
+            data = np.stack([np.repeat(x_ax, len(y_ax)), np.tile(y_ax, len(x_ax)), values], axis=1)
+
+            plot_data = pd.DataFrame(data, columns=["X", "Y", 'value']).reset_index()
+            plot_data.value = plot_data.value.astype(np.float64)
+            plot_data.fillna(0, inplace=True)
+            plot_data.replace([np.inf, -np.inf], np.nan, inplace=True)
+            pivot_data = plot_data.pivot("X", "Y", "value")
+
+        if len(self.performances.shape) == 3:
+            x_d = self.performances.shape[0]
+            y_d = self.performances.shape[1]
+            z_d = self.performances.shape[2]
+            z_d_cell = math.sqrt(z_d)
+            plot_data = self.performances\
+                .reshape((x_d, y_d * z_d_cell, z_d_cell))\
+                .swapaxes(0, 1)\
+                .reshape((x_d * z_d_cell, y_d * z_d_cell))
+            x_ax = np.repeat(stringify_bin_axis(self.feature_dimensions[0].bins), z_d_cell)
+            y_ax = np.repeat(stringify_bin_axis(self.feature_dimensions[1].bins), z_d_cell)
+            pivot_data = pd.DataFrame(plot_data, columns=[y_ax], index=[x_ax])
 
     def stopping_criteria(self):
         """

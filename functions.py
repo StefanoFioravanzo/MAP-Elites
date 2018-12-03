@@ -1,17 +1,30 @@
+from abc import ABC, abstractmethod
+
 from math import sin, cos, e
 import operator
 
 
-class ConstrainedFunctions:
+class ConstrainedFunction(ABC):
 
-    def __init__(self, optima):
-        self.optima = optima
+    def __init__(self, dimensions):
+        self.D = dimensions
+
+    @abstractmethod
+    def evaluate(self, X):
+        pass
+
+    @abstractmethod
+    def constraints(self):
+        pass
+
+    @abstractmethod
+    def get_domain(self):
+        pass
 
 
-class Rosenbrok:
+class Rosenbrok(ConstrainedFunction):
 
-    @staticmethod
-    def evaluate(X):
+    def evaluate(self, X):
         """
         http://en.wikipedia.org/wiki/Rosenbrock_function
         """
@@ -21,8 +34,7 @@ class Rosenbrok:
         b = y - x * x
         return a * a + b * b * 100.
 
-    @staticmethod
-    def constraints():
+    def constraints(self):
         """
         http://en.wikipedia.org/wiki/Test_functions_for_optimization
         """
@@ -40,6 +52,16 @@ class Rosenbrok:
                     "target": 0
                 }
         }
+
+    def get_domain(self):
+        """
+        Return a list of tuple representing a domain
+        of admissible individuals for each dimension
+        """
+        return [
+            (-1.5, 1.5),
+            (-0.5, 2.5)
+        ]
 
 
 class MishraBird:
