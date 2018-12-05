@@ -41,12 +41,14 @@ class Rosenbrok(ConstrainedFunction):
         return {
             "cubic":
                 {
+                    "name": "cubic_function",
                     "fun": lambda x: (x[0] - 1.) ** 3. - x[1] + 1.,
                     "op": operator.le,
                     "target": 0
                 },
             "line":
                 {
+                    "name": "cubic_function",
                     "fun": lambda x: x[0] + x[1] - 2.,
                     "op": operator.le,
                     "target": 0

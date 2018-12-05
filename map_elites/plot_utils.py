@@ -56,6 +56,7 @@ def plot_heatmap_2d_bokeh(data, x_axis, y_axis, x_label, y_label, title="MapElit
     show(p)
 
 
+# TODO: Invert color mapping in case of maximization
 def plot_heatmap(data, x_axis=None, y_axis=None, x_label='x label', y_label='y label',
                      title="MapElites fitness map", minimization=True, notebook=False):
     # get data dimensionality
