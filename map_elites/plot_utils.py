@@ -11,7 +11,7 @@ from bokeh.plotting import figure
 from bokeh.transform import transform
 
 
-def plot_heatmap_2d(data, x_axis, y_axis, x_label, y_label, title="MapElites fitness map", notebook=False):
+def plot_heatmap_2d_bokeh(data, x_axis, y_axis, x_label, y_label, title="MapElites fitness map", notebook=False):
     """
     :param data: Assume a list of tuples in the form (value, x_value, y_value)
     :param x_axis: Array of strings with the ticks of x axis
@@ -56,30 +56,63 @@ def plot_heatmap_2d(data, x_axis, y_axis, x_label, y_label, title="MapElites fit
     show(p)
 
 
-def plot_heatmap_2d_seaborn(data, x_axis, y_axis, x_label, y_label, title="MapElites fitness map", notebook=False):
-    plot_data = pd.DataFrame(data, columns=[x_label, y_label, 'value']).reset_index()
-    plot_data.value = plot_data.value.astype(np.float64)
-    plot_data.fillna(0, inplace=True)
-    plot_data.replace([np.inf, -np.inf], np.nan, inplace=True)
+def plot_heatmap(data, x_axis=None, y_axis=None, x_label='x label', y_label='y label',
+                     title="MapElites fitness map", minimization=True, notebook=False):
+    # get data dimensionality
+    d = data.shape
 
-    pivot_data = plot_data.pivot("X", "Y", "value")
+    # reshape data to obtain a 2d heatmap
+    if len(d) == 3:
+        data = data.reshape((d[0], d[1] * d[2]))
+    if len(d) == 4:
+        data = data.reshape((d[0], d[1] * d[2], d[3])).swapaxes(0, 1).reshape((d[1] * d[2], d[0] * d[3]))
 
-    # Plot cell colors in a log scale
-    min = pivot_data.min().min()
-    max = pivot_data.max().max()
+    plt.subplots(figsize=(10, 10))
+
+    # TODO: Define x_axis and y_axis
+    x_axis = [str(i) for i in range(0, d[0])]
+    y_axis = [str(i) for i in range(0, d[1])]
+    if len(d) == 3:
+        x_axis = np.repeat(x_axis, d[2])
+    if len(d) == 4:
+        y_axis = np.repeat(y_axis, d[2])
+        x_axis = np.repeat(x_axis, d[3])
+
+    df_data = pd.DataFrame(data, columns=[x_axis], index=[y_axis])
+    df_data.replace([np.inf, -np.inf], np.nan, inplace=True)
+
+    min = df_data.min().min()
+    max = df_data.max().max()
     log_norm = LogNorm(vmin=min, vmax=max)
     cbar_ticks = [math.pow(10, i)
                   for i in range(math.floor(math.log10(min)), 1 + math.ceil(math.log10(max)))]
 
-    mask = pivot_data.isnull()
-    ax = sns.heatmap(pivot_data, mask=mask, norm=log_norm, cbar_kws={"ticks": cbar_ticks})
+    mask = df_data.isnull()
+    ax = sns.heatmap(
+        df_data,
+        mask=mask,
+        annot=True,
+        norm=log_norm,
+        fmt=".1f",
+        annot_kws={'size': 10},
+        cbar_kws={"ticks": cbar_ticks},
+        linecolor='white'
+    )
+
     ax.set_title(f"{title} - white cells are null values (not initialized)")
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
-    
     ax.invert_yaxis()
-    plt.show()
 
+    # show grid lines
+    if len(d) == 3:
+        ax.vlines(list(range(0, d[1] * d[2], d[2])), *ax.get_ylim(), colors='g')
+        ax.hlines(list(range(0, d[0])), *ax.get_xlim(), colors='g')
+    if len(d) == 4:
+        ax.hlines(list(range(0, d[1] * d[2], d[2])), *ax.get_ylim(), colors='g')
+        ax.vlines(list(range(0, d[0] * d[3], d[3])), *ax.get_xlim(), colors='g')
+
+    plt.show()
 
 
 def main():
@@ -98,7 +131,15 @@ def main():
     data = np.stack([np.repeat(x_ax, len(y_ax)), np.tile(y_ax, len(x_ax)), values], axis=1)
 
     plot_heatmap_2d(data, x_ax, y_ax, "X", "Y")
-
+    
+    
+def test_3D():
+    x_d = 5
+    y_d = 5
+    z_d = 9
+    z_d_cell = math.sqrt(z_d)
+    l = np.reshape(np.tile(np.tile(np.array(range(1, z_d+1)), x_d), y_d), (x_d, y_d, z_d))
+    matrix = l.reshape((x_d, y_d * z_d_cell, z_d_cell)).swapaxes(0, 1).reshape((x_d * z_d_cell, y_d * z_d_cell))
 
 if __name__ == "__main__":
     main()

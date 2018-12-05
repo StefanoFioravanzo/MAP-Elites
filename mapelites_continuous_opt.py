@@ -69,10 +69,10 @@ class MapElitesContinuousOpt(MapElites):
         rosenbrok_const = self.F.constraints()
 
         cubic_bins = [-np.inf, 0.0, 4.0, 6.0, 8.0, 10.0, np.inf]
-        cubic = FeatureDimension("cubic_function", rosenbrok_const['cubic']['fun'], cubic_bins)
+        cubic = FeatureDimension("cubic_function", rosenbrok_const['cubic'], cubic_bins)
 
         line_bins = [-np.inf, 0.0, 4.0, 6.0, 8.0, 10.0, np.inf]
-        line = FeatureDimension("line_function", rosenbrok_const['line']['fun'], line_bins)
+        line = FeatureDimension("line_function", rosenbrok_const['line'], line_bins)
 
         return [cubic, line]
 
