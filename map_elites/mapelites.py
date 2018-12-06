@@ -1,5 +1,9 @@
 from abc import ABC, abstractmethod
 
+import os
+from shutil import copyfile
+from pathlib import Path
+from datetime import datetime
 import math
 import operator
 import numpy as np
@@ -114,6 +118,16 @@ class MapElites(ABC):
         self.solutions = np.full(ft_bins, (np.inf, np.inf), dtype=(float, 2))
         self.performances = np.full(ft_bins, np.inf)
 
+        # configure logging
+        # empty log file from potential previous logs
+        open('log.log', 'w').close()
+
+        now = datetime.now().strftime("%Y%m%d%H%M%S")
+        self.log_dir_name = f"log_{now}"
+        self.log_dir_path = Path(f'logs/{self.log_dir_name}')
+        # create log dir
+        self.log_dir_path.mkdir(parents=True)
+
         logging.info("Configuration completed.")
 
     @staticmethod
@@ -209,6 +223,7 @@ class MapElites(ABC):
                 self.place_in_mapelites(ind, pbar=pbar)
 
         # save results, display metrics and plot statistics
+        self.save_logs()
         self.plot_map_of_elites()
 
     def place_in_mapelites(self, x, pbar=None):
@@ -224,7 +239,6 @@ class MapElites(ABC):
         """
         b = self.map_x_to_b(x)
         perf = self.performance_measure(x)
-        print(perf)
 
         if self.place_operator(perf, self.performances[b]):
             logging.info(f"PLACE: Placing individual {x} at {b} with perf: {perf}")
@@ -272,6 +286,12 @@ class MapElites(ABC):
             inds.append(self.solutions[idx])
         return inds
 
+    def save_logs(self):
+        copyfile('log.log', self.log_dir_path / 'log.log')
+        copyfile('config.ini', self.log_dir_path / 'config.ini')
+        np.save(self.log_dir_path / 'performances', self.performances)
+        np.save(self.log_dir_path / "solutions", self.solutions)
+
     def plot_map_of_elites(self):
         """
         Plot a heatmap of elites
@@ -293,7 +313,7 @@ class MapElites(ABC):
         else:
             y_ax = stringify_bin_axis(self.feature_dimensions[1].bins)
 
-        plot_heatmap(self.performances, x_ax, y_ax, "X", "Y", notebook=self.notebook)
+        plot_heatmap(self.performances, x_ax, y_ax, "X", "Y", notebook=self.notebook, savefig_path=self.log_dir_path)
 
     def stopping_criteria(self):
         """

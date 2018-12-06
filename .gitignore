@@ -1,4 +1,5 @@
-.log
+log.log
+logs/
 
 __pycache__/
 
@@ -9,3 +10,6 @@ __pycache__/
 notes.md
 
 notebooks/
+
+
+

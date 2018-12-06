@@ -58,7 +58,7 @@ def plot_heatmap_2d_bokeh(data, x_axis, y_axis, x_label, y_label, title="MapElit
 
 # TODO: Invert color mapping in case of maximization
 def plot_heatmap(data, x_axis=None, y_axis=None, x_label='x label', y_label='y label',
-                     title="MapElites fitness map", minimization=True, notebook=False):
+                     title="MapElites fitness map", minimization=True, notebook=False, savefig_path=None):
     # get data dimensionality
     d = data.shape
 
@@ -116,6 +116,10 @@ def plot_heatmap(data, x_axis=None, y_axis=None, x_label='x label', y_label='y l
         ax.hlines(list(range(0, d[1] * d[2], d[2])), *ax.get_ylim(), colors='g')
         ax.vlines(list(range(0, d[0] * d[3], d[3])), *ax.get_xlim(), colors='g')
 
+    # get figure to save to file
+    if savefig_path:
+        ht_figure = ax.get_figure()
+        ht_figure.savefig(savefig_path / "heatmap.png", dpi=400)
     plt.show()
 
 
