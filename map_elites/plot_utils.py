@@ -71,8 +71,10 @@ def plot_heatmap(data, x_axis=None, y_axis=None, x_label='x label', y_label='y l
     plt.subplots(figsize=(10, 10))
 
     # TODO: Define x_axis and y_axis
-    x_axis = [str(i) for i in range(0, d[0])]
-    y_axis = [str(i) for i in range(0, d[1])]
+    y_axis = [str(i) for i in range(0, d[0])]
+    x_axis = ['1']
+    if len(d) == 2:
+        y_axis = [str(i) for i in range(0, d[1])]
     if len(d) == 3:
         x_axis = np.repeat(x_axis, d[2])
     if len(d) == 4:
@@ -82,21 +84,22 @@ def plot_heatmap(data, x_axis=None, y_axis=None, x_label='x label', y_label='y l
     df_data = pd.DataFrame(data, columns=[x_axis], index=[y_axis])
     df_data.replace([np.inf, -np.inf], np.nan, inplace=True)
 
+    # TODO: Allow for log scale colormap w/ negative value
     min = df_data.min().min()
     max = df_data.max().max()
-    log_norm = LogNorm(vmin=min, vmax=max)
-    cbar_ticks = [math.pow(10, i)
-                  for i in range(math.floor(math.log10(min)), 1 + math.ceil(math.log10(max)))]
+    # log_norm = LogNorm(vmin=min, vmax=max)
+    # cbar_ticks = [math.pow(10, i)
+    #               for i in range(math.floor(math.log10(min)), 1 + math.ceil(math.log10(max)))]
 
     mask = df_data.isnull()
     ax = sns.heatmap(
         df_data,
         mask=mask,
         annot=True,
-        norm=log_norm,
+        # norm=log_norm,
         fmt=".1f",
         annot_kws={'size': 10},
-        cbar_kws={"ticks": cbar_ticks},
+        # cbar_kws={"ticks": cbar_ticks},
         linecolor='white'
     )
 

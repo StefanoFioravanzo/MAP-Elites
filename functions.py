@@ -46,14 +46,14 @@ class Rosenbrok(ConstrainedFunction):
             "cubic":
                 {
                     "name": "cubic_function",
-                    "fun": lambda x: (x[0] - 1.) ** 3. - x[1] + 1.,
+                    "func": lambda x: (x[0] - 1.) ** 3. - x[1] + 1.,
                     "op": operator.le,
                     "target": lambda x: 0
                 },
             "line":
                 {
                     "name": "cubic_function",
-                    "fun": lambda x: x[0] + x[1] - 2.,
+                    "func": lambda x: x[0] + x[1] - 2.,
                     "op": operator.le,
                     "target": lambda x: 0
                 }
@@ -103,7 +103,7 @@ class Townsend(ConstrainedFunction):
         x = X[0]
         y = X[1]
         a = (x - 0.1) * y
-        b = cos(a) ** cos(a)
+        b = cos(a) ** 2
         c = 3 * x + y
         d = x * sin(c)
         return (b * (-1.)) - d
@@ -115,7 +115,7 @@ class Townsend(ConstrainedFunction):
             y = X[1]
             t = atan2(x, y)
             a = (2 * cos(t)) - (0.5 * cos(2 * t)) - (0.25 * cos(3 * t)) - (0.125 * cos(4 * t))
-            return a ** a + (2 * sin(t)) ** (2 * sin(t))
+            return a ** 2 + (2 * sin(t)) ** 2
 
         return {
             "const1":
@@ -123,7 +123,7 @@ class Townsend(ConstrainedFunction):
                     "name": "const1",
                     "func": const1,
                     "op": operator.gt,
-                    "target": lambda x: x[0] ** x[0] + x[1] ** x[1]
+                    "target": lambda x: x[0] ** 2 + x[1] ** 2
                 }
         }
 
@@ -134,6 +134,7 @@ class Townsend(ConstrainedFunction):
         ]
 
 
+# TODO: Crea numeri complessi?
 class Simionescu(ConstrainedFunction):
 
     def evaluate(self, X):
@@ -159,7 +160,7 @@ class Simionescu(ConstrainedFunction):
                     "name": "const1",
                     "func": const1,
                     "op": operator.ge,
-                    "target": lambda x : x[0] ** x[0] + x[1] ** x[1]
+                    "target": lambda x: x[0] ** 2 + x[1] ** 2
                 }
         }
 

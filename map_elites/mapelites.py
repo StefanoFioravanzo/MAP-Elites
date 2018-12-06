@@ -3,7 +3,6 @@ from abc import ABC, abstractmethod
 import math
 import operator
 import numpy as np
-import pandas as pd
 import logging
 from tqdm import tqdm
 
@@ -48,8 +47,9 @@ class FeatureDimension:
                     self.feature_function_target(x)):
                 return 0
             else:
-                return self.feature_function_call(x) - self.feature_function_target(x)
+                return math.fabs(self.feature_function_call(x) - self.feature_function_target(x))
 
+    # TODO: Check reason the values of contraints explode after some iterations
     def discretize(self, value):
         """
         Get bin (index) of dimension from real value
@@ -224,6 +224,7 @@ class MapElites(ABC):
         """
         b = self.map_x_to_b(x)
         perf = self.performance_measure(x)
+        print(perf)
 
         if self.place_operator(perf, self.performances[b]):
             logging.info(f"PLACE: Placing individual {x} at {b} with perf: {perf}")
@@ -287,7 +288,10 @@ class MapElites(ABC):
             return list(map(lambda x: f'{x[0]}: {x[1]} to {x[2]}', zip(range(0, len(bins)), np.insert(bins, 0, 0), bins)))[1:]
 
         x_ax = stringify_bin_axis(self.feature_dimensions[0].bins)
-        y_ax = stringify_bin_axis(self.feature_dimensions[1].bins)
+        if len(self.feature_dimensions) == 1:
+            y_ax = ["a"]
+        else:
+            y_ax = stringify_bin_axis(self.feature_dimensions[1].bins)
 
         plot_heatmap(self.performances, x_ax, y_ax, "X", "Y", notebook=self.notebook)
 

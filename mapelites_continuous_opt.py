@@ -12,7 +12,8 @@ logging.basicConfig(filename="log.log", level=logging.INFO)
 np.random.seed(1)
 config = configparser.ConfigParser()
 
-
+# TODO: Implement proper logging at each iteration to check for issues
+# es: iter1 - perf - ft_desc - etc...
 class MapElitesContinuousOpt(MapElites):
 
     def __init__(self, *args, **kwargs):
@@ -59,7 +60,7 @@ class MapElitesContinuousOpt(MapElites):
         return [
             FeatureDimension(name=v['name'],
                              feature_function_target=v['target'],
-                             feature_function_call=v['fun'],
+                             feature_function_call=v['func'],
                              feature_function_operator=v['op'],
                              bins=default_bins)
             for k, v in self.F.constraints().items()
