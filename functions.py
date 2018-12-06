@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 
-from math import sin, cos, e, atan2, atan
+from math import sin, cos, e, atan2, atan, sqrt, pi
 import operator
+import numpy as np
 
 
 class ConstrainedFunction(ABC):
@@ -170,3 +171,84 @@ class Simionescu(ConstrainedFunction):
             (-1.25, 1.25)
         ]
 
+
+class C16(ConstrainedFunction):
+
+    def __init__(self, dimensions):
+        self.o = np.array(
+            [0.365972807627352, 0.429881383400138, -0.420917679577772, 0.984265986788929, 0.324792771198785,
+             0.463737106835568, 0.989554882052943, 0.307453878359996, 0.625094764380575, -0.358589007202526,
+             0.24624504504104, -0.96149609569083, -0.184146201911073, -0.030609388103067, 0.13366054512765,
+             0.450280168292005, -0.662063233352676, 0.720384516339946, 0.518473305175091, -0.969074121149791,
+             -0.221655317677079, 0.327361832246864, -0.695097713581401, -0.671724285177815, -0.534907819936839,
+             -0.003991036739113, 0.486452090756303, -0.689962754053575, -0.138437260109118, -0.626943354458217])
+
+        if dimensions > len(self.o):
+            raise ValueError("Dimensions cannot be higher than o vector")
+
+        super().__init__(dimensions)
+
+    def evaluate(self, X):
+        x = np.array(X)
+        z = x - self.o[:self.D]
+        a = np.sum([(_z ** 2) / 4000] for _z in z)
+        b = np.prod([cos(_z / sqrt(i)) for i, _z in enumerate(z)])
+        return a - b + 1
+
+    def constraints(self):
+
+        def g1(X):
+            x = np.array(X)
+            z = x - self.o[:self.D]
+            return np.sum([_z * _z - 100 * cos(pi * _z) + 10 for _z in z])
+
+        def g2(X):
+            x = np.array(X)
+            z = x - self.o[:self.D]
+            return np.prod(z[:self.D])
+
+        def h1(X):
+            x = np.array(X)
+            z = x - self.o[:self.D]
+            return np.sum([_z * sin(sqrt(abs(_z))) for _z in z])
+
+        def h2(X):
+            x = np.array(X)
+            z = x - self.o[:self.D]
+            return np.sum([_z * -1. * sin(sqrt(abs(_z))) for _z in z])
+
+        return {
+            "g1":
+                {
+                    "name": "g1",
+                    "func": g1,
+                    "op": operator.le,
+                    "target": lambda x: 0
+                },
+            "g2":
+                {
+                    "name": "g2",
+                    "func": g2,
+                    "op": operator.le,
+                    "target": lambda x: 0
+                },
+            "h1":
+                {
+                    "name": "h1",
+                    "func": h1,
+                    "op": operator.eq,
+                    "target": lambda x: 0
+                },
+            "h2":
+                {
+                    "name": "h2",
+                    "func": h2,
+                    "op": operator.eq,
+                    "target": lambda x: 0
+                }
+        }
+
+    def get_domain(self):
+        return [
+            (-10, 10) for _ in range(0, self.D)
+        ]
