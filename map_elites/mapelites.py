@@ -8,7 +8,8 @@ import logging
 from tqdm import tqdm
 
 from .ea_operators import EaOperators
-from .plot_utils import plot_heatmap_2d, plot_heatmap_2d_seaborn
+from .plot_utils import plot_heatmap
+import functions
 
 
 class FeatureDimension:
@@ -16,25 +17,38 @@ class FeatureDimension:
     Describes a feature dimension
     """
 
-    def __init__(self, name, feature_function, bins):
+    def __init__(self, name, feature_function_target, feature_function_call, feature_function_operator, bins):
         """
         :param name: Name or description of the feature dimension
         :param feature_function: Feature function or simulation, given a candidate solution as input
         :param bins: Array of bins, from starting value to last value of last bin
         """
         self.name = name
-        # TODO: check feature function is indeed a function
-        self.feature_function = feature_function
+
+        self.feature_function_call = feature_function_call
+        self.feature_function_target = feature_function_target
+        self.feature_function_operator = feature_function_operator
+
+        if self.feature_function_operator not in [operator.eq, operator.le, operator.lt, operator.ge, operator.gt]:
+            raise ValueError(f"Feature function operator not recognized")
+
         self.bins = bins
 
     def feature_descriptor(self, x):
         """
         Simulate the candidate solution x and record its feature descriptor
         :param x: genotype of candidate solution x
-        :return:
+        :return: The amount of error from the feature descriptor bound
         """
-        # TODO: what to do besides just calling the function?
-        return self.feature_function(x)
+        if self.feature_function_operator == operator.eq:
+            return math.fabs(self.feature_function_call(x) - self.feature_function_target)
+        else:
+            if self.feature_function_operator(
+                    self.feature_function_call(x),
+                    self.feature_function_target):
+                return 0
+            else:
+                return self.feature_function_call(x) - self.feature_function_target
 
     def discretize(self, value):
         """
@@ -51,6 +65,8 @@ class MapElites(ABC):
 
     def __init__(self,
                  iterations,
+                 optimization_function,
+                 optimization_function_dimensions,
                  random_solutions,
                  mutation_op,
                  mutation_args,
@@ -105,6 +121,16 @@ class MapElites(ABC):
         notebook = config['env'].getboolean('notebook')
         minimization = config['mapelites'].getboolean('minimization')
 
+        # Get optimization function
+        function_name = config['opt_function']['name']
+        function_dimensions = config['opt_function'].getint('dimensions')
+        function_class = getattr(functions, function_name)
+
+        if not issubclass(function_class, functions.ConstrainedFunction):
+            raise ValueError(
+                f"Optimization function class {function_class.__name__} must be a "
+                f"subclass of {functions.ConstrainedFunction.__name__}")
+
         # get list of ea operators
         ea_operators = [func for func in dir(EaOperators)
                         if callable(getattr(EaOperators, func))
@@ -138,6 +164,8 @@ class MapElites(ABC):
 
         return cls(
             iterations=iterations,
+            optimization_function=function_class,
+            optimization_function_dimensions=function_dimensions,
             random_solutions=random_solutions,
             mutation_op=mutation_fun,
             mutation_args=mutation_args,
@@ -256,16 +284,10 @@ class MapElites(ABC):
             """
             return list(map(lambda x: f'{x[0]}: {x[1]} to {x[2]}', zip(range(0, len(bins)), np.insert(bins, 0, 0), bins)))[1:]
 
-        # Prepare data for plotting
-        values = np.reshape(self.performances, (-1, ))
-
         x_ax = stringify_bin_axis(self.feature_dimensions[0].bins)
         y_ax = stringify_bin_axis(self.feature_dimensions[1].bins)
-        # x_ax = list(map(lambda x: f"{x}", self.feature_dimensions[0].bins[1:]))
-        # y_ax = list(map(lambda x: f"{x}", self.feature_dimensions[1].bins[1:]))
-        data = np.stack([np.repeat(x_ax, len(y_ax)), np.tile(y_ax, len(x_ax)), values], axis=1)
 
-        plot_heatmap_2d_seaborn(data, x_ax, y_ax, "X", "Y", notebook=self.notebook)
+        plot_heatmap(self.performances, x_ax, y_ax, "X", "Y", notebook=self.notebook)
 
     def plot_map_of_elites_n_dimensional(self):
         def stringify_bin_axis(bins):
