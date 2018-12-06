@@ -1,18 +1,11 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
-
 import logging
 import configparser
 import numpy as np
 
-from functools import reduce
-import operator
-
 from map_elites.mapelites import MapElites, FeatureDimension
-from functions import Rosenbrok
 
 logging.basicConfig(filename="log.log", level=logging.INFO)
 # this should set the seed project wide
@@ -20,14 +13,9 @@ np.random.seed(1)
 config = configparser.ConfigParser()
 
 
-# In[2]:
-
-
 class MapElitesContinuousOpt(MapElites):
 
     def __init__(self, *args, **kwargs):
-        # function object instance to be optimized
-        self.F = Rosenbrok(dimensions=2)
         super(MapElitesContinuousOpt, self).__init__(*args, **kwargs)
 
     def map_x_to_b(self, x):
@@ -84,10 +72,3 @@ config.read('config.ini')
 logging.info("Start map elites")
 map_E = MapElitesContinuousOpt.from_config(MapElitesContinuousOpt, config)
 map_E.run()
-
-
-# In[ ]:
-
-
-
-
