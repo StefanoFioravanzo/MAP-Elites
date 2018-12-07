@@ -64,7 +64,8 @@ class FeatureDimension:
         # - 1 because digitize is 1-indexed
         return index - 1
 
-
+# TODO: Check why as the iterations increase the value inside the the map of elites increases as well
+# TODO: Use class method for initialization
 class MapElites(ABC):
 
     def __init__(self,
@@ -77,15 +78,12 @@ class MapElites(ABC):
                  crossover_op,
                  crossover_args,
                  minimization=True,
-                 notebook=False):
+                 ):
         """
         :param iterations:
         :param random_solutions:
         :param minimization: True if solving a minimization problem. False if solving a maximization problem.
-        :param notebook: True the code is executed inside an IPython Notebook.
         """
-        self.notebook = notebook
-
         self.minimization = minimization
         # set the choice operator either to do a minimization or a maximization
         if self.minimization:
@@ -134,7 +132,6 @@ class MapElites(ABC):
     def from_config(cls, config):
         iterations = config['mapelites'].getint('iterations')
         random_solutions = config['mapelites'].getint('initial_random_population')
-        notebook = config['env'].getboolean('notebook')
         minimization = config['mapelites'].getboolean('minimization')
 
         # Get optimization function
@@ -188,7 +185,6 @@ class MapElites(ABC):
             crossover_op=crossover_fun,
             crossover_args=crossover_args,
             minimization=minimization,
-            notebook=notebook
         )
 
     def generate_initial_population(self):
@@ -202,7 +198,6 @@ class MapElites(ABC):
         # self.plot_map_of_elites()
 
     def run(self):
-
         # start by creating an initial set of random solutions
         self.generate_initial_population()
 
@@ -254,7 +249,6 @@ class MapElites(ABC):
         Select an elite x from the current map of elites
         The selection is done by selecting a random bin for each feature
         dimension, until a bin with a value is found.
-        # TODO: To optimize this procedure we could keep a data structure that records the cells that have been filled
         :param individuals: The number of individuals to randomly select
         :return: A list of N random elites
         """
@@ -296,24 +290,13 @@ class MapElites(ABC):
         """
         Plot a heatmap of elites
         """
-        def stringify_bin_axis(bins):
-            """
-            Takes as input an array of values describing the bins of the feature dimension.
-            We want to have as output an array of strings in the form of "from _start_value to _end_value"
-            that describe the range of each bin.
-            To do this we zip the bins array to itself (shifting one of the two by one element) to
-            produce the string. The take all the resulting strings but the first (which is the additional one
-            produced due to shifting)
-            """
-            return list(map(lambda x: f'{x[0]}: {x[1]} to {x[2]}', zip(range(0, len(bins)), np.insert(bins, 0, 0), bins)))[1:]
-
-        x_ax = stringify_bin_axis(self.feature_dimensions[0].bins)
+        y_ax = [str(d) for d in self.feature_dimensions[0].bins]
         if len(self.feature_dimensions) == 1:
-            y_ax = ["a"]
+            x_ax = ["-"]
         else:
-            y_ax = stringify_bin_axis(self.feature_dimensions[1].bins)
+            x_ax = [str(d) for d in self.feature_dimensions[1].bins]
 
-        plot_heatmap(self.performances, x_ax, y_ax, "X", "Y", notebook=self.notebook, savefig_path=self.log_dir_path)
+        plot_heatmap(self.performances, x_ax, y_ax, savefig_path=self.log_dir_path)
 
     def stopping_criteria(self):
         """

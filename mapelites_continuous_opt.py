@@ -12,8 +12,7 @@ logging.basicConfig(filename="log.log", level=logging.INFO)
 np.random.seed(1)
 config = configparser.ConfigParser()
 
-# TODO: Implement proper logging at each iteration to check for issues
-# es: iter1 - perf - ft_desc - etc...
+
 class MapElitesContinuousOpt(MapElites):
 
     def __init__(self, *args, **kwargs):
@@ -40,7 +39,6 @@ class MapElitesContinuousOpt(MapElites):
         logging.info("calculate performance measure")
         return self.F.evaluate(x)
 
-    # TODO: Ask the professor about this
     def generate_random_solution(self):
         """
         To ease the bootstrap of the algorithm, we can generate
