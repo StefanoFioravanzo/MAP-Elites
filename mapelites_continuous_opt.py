@@ -2,7 +2,6 @@
 # coding: utf-8
 
 import logging
-import configparser
 import numpy as np
 
 from map_elites.mapelites import MapElites, FeatureDimension
