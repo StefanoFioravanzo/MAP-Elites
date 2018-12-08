@@ -191,8 +191,9 @@ class C16(ConstrainedFunction):
     def evaluate(self, X):
         x = np.array(X)
         z = x - self.o[:self.D]
-        a = np.sum([(_z ** 2) / 4000] for _z in z)
-        b = np.prod([cos(_z / sqrt(i)) for i, _z in enumerate(z)])
+        a = np.sum([(_z ** 2) / 4000 for _z in z])
+        # i+1 because we start from 1
+        b = np.prod([cos(_z / sqrt(i+1)) for i, _z in enumerate(z)])
         return a - b + 1
 
     def constraints(self):
@@ -243,6 +244,74 @@ class C16(ConstrainedFunction):
                 {
                     "name": "h2",
                     "func": h2,
+                    "op": operator.eq,
+                    "target": lambda x: 0
+                }
+        }
+
+    def get_domain(self):
+        return [
+            (-10, 10) for _ in range(0, self.D)
+        ]
+
+
+class C17(ConstrainedFunction):
+
+    def __init__(self, dimensions):
+        self.o = np.array(
+            [-0.628245703945122, 0.331024455127249, 0.402617203423807, 0.462742527496583, -0.513329779137884,
+             0.288191632492259, 0.41479349370103, 0.916196063289011, -0.427742767473712, 0.811971694633694,
+             -0.202953396286476, 0.786617208861492, -0.583805982901842, 0.91666360939369, -0.602135912772221,
+             0.503807046950863, -0.196264987447976, -0.565579687152807, 0.540878947793462, 0.183666358669345,
+             -0.303576255198908, -0.896405440407756, -0.101939801890135, -0.049819872322279, 0.434240825173134,
+             0.946552963504364, -0.32578927683003, -0.154255792477949, 0.577967633549953, -0.573697797217518])
+
+        if dimensions > len(self.o):
+            raise ValueError("Dimensions cannot be higher than o vector")
+
+        super().__init__(dimensions)
+
+    def evaluate(self, X):
+        x = np.array(X)
+        z = x - self.o[:self.D]
+        a = [z[i] - z[i+1] for i in range(0, self.D-1)]
+        return np.sum([_z * _z for _z in a])
+
+    def constraints(self):
+        def g1(X):
+            x = np.array(X)
+            z = x - self.o[:self.D]
+            return np.prod([_z for _z in z])
+
+        def g2(X):
+            x = np.array(X)
+            z = x - self.o[:self.D]
+            return np.sum([_z for _z in z])
+
+        def h1(X):
+            x = np.array(X)
+            z = x - self.o[:self.D]
+            return np.sum([_z * sin(4 * sqrt(abs(_z))) for _z in z])
+
+        return {
+            "g1":
+                {
+                    "name": "g1",
+                    "func": g1,
+                    "op": operator.le,
+                    "target": lambda x: 0
+                },
+            "g2":
+                {
+                    "name": "g2",
+                    "func": g2,
+                    "op": operator.le,
+                    "target": lambda x: 0
+                },
+            "h1":
+                {
+                    "name": "h1",
+                    "func": h1,
                     "op": operator.eq,
                     "target": lambda x: 0
                 }

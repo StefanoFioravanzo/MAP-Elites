@@ -50,7 +50,7 @@ class MapElitesContinuousOpt(MapElites):
         ])
 
     def generate_feature_dimensions(self):
-
+        # TODO: Add a few checks to the number of specified bins wrt to the defined in functions
         fts = list()
         for k, v in self.F.constraints().items():
             bin_key = f"bin_{v['name']}"

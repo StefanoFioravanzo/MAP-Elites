@@ -327,11 +327,12 @@ class MapElites(ABC):
         """
         Plot a heatmap of elites
         """
-        y_ax = [str(d) for d in self.feature_dimensions[0].bins]
         if len(self.feature_dimensions) == 1:
-            x_ax = ["-"]
+            y_ax = ["-"]
+            x_ax = [str(d) for d in self.feature_dimensions[0].bins]
         else:
-            x_ax = [str(d) for d in self.feature_dimensions[1].bins]
+            x_ax = [str(d) for d in self.feature_dimensions[0].bins]
+            y_ax = [str(d) for d in self.feature_dimensions[1].bins]
 
         plot_heatmap(self.performances, x_ax, y_ax, savefig_path=self.log_dir_path)
 

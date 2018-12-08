@@ -7,6 +7,7 @@ import matplotlib.ticker as ticker
 from matplotlib.colors import LogNorm
 
 
+# TODO: Try to Port Seaborn Plot to Bokeh
 # TODO: Gli assi sono invertiti g0:y e g1:x. Da vedere cosa succede con dimensioni > 2
 # TODO: Invert color mapping in case of maximization
 def plot_heatmap(data, x_axis=None, y_axis=None, x_label=None, y_label=None,
@@ -15,10 +16,16 @@ def plot_heatmap(data, x_axis=None, y_axis=None, x_label=None, y_label=None,
     d = data.shape
 
     # reshape data to obtain a 2d heatmap
+    if len(d) == 1:
+        data = [data]
+    if len(d) == 2:
+        data = data.transpose()
     if len(d) == 3:
-        data = data.reshape((d[0], d[1] * d[2]))
+        data = np.transpose(data, axes=(1, 0, 2)).reshape((d[1], d[0] * d[2]))
     if len(d) == 4:
-        data = data.reshape((d[0], d[1] * d[2], d[3])).swapaxes(0, 1).reshape((d[1] * d[2], d[0] * d[3]))
+        _data = np.transpose(data, axes=[1, 0, 2, 3])
+        data = np.transpose(_data.reshape((d[1], d[0] * d[2], d[3])), axes=[0, 2, 1]).reshape(
+            (d[1] * d[3], d[0] * d[2]))
 
     plt.subplots(figsize=(10, 10))
 
@@ -36,13 +43,13 @@ def plot_heatmap(data, x_axis=None, y_axis=None, x_label=None, y_label=None,
     ax = sns.heatmap(
         df_data,
         mask=mask,
-        annot=True,
+        # annot=True,
         # norm=log_norm,
         fmt=".4f",
         annot_kws={'size': 10},
         # cbar_kws={"ticks": cbar_ticks},
         linewidths=.5,
-        linecolor='black',
+        linecolor='grey',
         cmap="YlGnBu",
         xticklabels=False,
         yticklabels=False
@@ -54,14 +61,14 @@ def plot_heatmap(data, x_axis=None, y_axis=None, x_label=None, y_label=None,
     ax.invert_yaxis()
 
     # set ticks
-    x_ticks_pos = [0.5]
-    y_ticks_pos = range(0, d[0]+1)
-    if len(d) == 2:
-        x_ticks_pos = range(0, d[1]+1)
+    y_ticks_pos = [0.5]
+    x_ticks_pos = range(0, d[0]+1)
+    if len(d) > 1:
+        y_ticks_pos = range(0, d[1]+1)
     if len(d) > 2:
-        x_ticks_pos = range(0, d[1]+1, d[2])
+        x_ticks_pos = range(0, d[0]*d[2]+1, d[2])
     if len(d) > 3:
-        y_ticks_pos = range(0, d[0]+1, d[3])
+        y_ticks_pos = range(0, d[1]*d[3]+1, d[3])
 
     ax.xaxis.set_major_locator(ticker.FixedLocator(x_ticks_pos))
     ax.xaxis.set_major_formatter(ticker.FixedFormatter(x_axis))
@@ -71,29 +78,29 @@ def plot_heatmap(data, x_axis=None, y_axis=None, x_label=None, y_label=None,
 
     # show grid lines
     thick_grid_color = 'k'
-    thick_grid_width = 1
+    thick_grid_width = 2
     if len(d) == 3:
         ax.vlines(
-            list(range(0, d[1] * d[2], d[2])),
+            list(range(0, d[0] * d[2], d[2])),
             *ax.get_ylim(),
             colors=thick_grid_color,
             linewidths=thick_grid_width
         )
         ax.hlines(
-            list(range(0, d[0])),
+            list(range(0, d[1])),
             *ax.get_xlim(),
             colors=thick_grid_color,
             linewidths=thick_grid_width
         )
     if len(d) == 4:
-        ax.hlines(
-            list(range(0, d[1] * d[2], d[2])),
+        ax.vlines(
+            list(range(0, d[0] * d[2] + 1, d[2])),
             *ax.get_ylim(),
             colors=thick_grid_color,
             linewidths=thick_grid_width
         )
-        ax.vlines(
-            list(range(0, d[0] * d[3], d[3])),
+        ax.hlines(
+            list(range(0, d[1] * d[3] + 1, d[3])),
             *ax.get_xlim(),
             colors=thick_grid_color,
             linewidths=thick_grid_width
