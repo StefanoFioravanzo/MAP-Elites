@@ -50,7 +50,19 @@ class MapElitesContinuousOpt(MapElites):
         ])
 
     def generate_feature_dimensions(self):
-        # TODO: Add a few checks to the number of specified bins wrt to the defined in functions
+
+        # means the user is using contsraint-specific bins
+        if 'bin_all' not in self.bins:
+            n_constr = len(self.F.constraints().items())
+            if len(self.bins.items()) != n_constr:
+                raise ValueError(f"You need to define {n_constr} constraints for constrained function {self.F.__class__.__name__}")
+
+            # check all the defined constraints match the function constraints names
+            for k, v in self.bins.items():
+                cst_name = k.split('_')[1]
+                if cst_name not in self.F.constraints().keys():
+                    raise ValueError(f"Constraint {cst_name} was not found in function {self.F.__class__.__name__}")
+
         fts = list()
         for k, v in self.F.constraints().items():
             bin_key = f"bin_{v['name']}"
