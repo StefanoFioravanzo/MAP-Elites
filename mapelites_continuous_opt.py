@@ -8,7 +8,6 @@ import numpy as np
 from map_elites.mapelites import MapElites, FeatureDimension
 
 logging.basicConfig(filename="log.log", level=logging.INFO)
-config = configparser.ConfigParser()
 
 
 class MapElitesContinuousOpt(MapElites):
@@ -51,21 +50,22 @@ class MapElitesContinuousOpt(MapElites):
         ])
 
     def generate_feature_dimensions(self):
-        default_bins = [-np.inf, 0.0, 4.0, 6.0, 8.0, 10.0, np.inf]
 
-        return [
-            FeatureDimension(name=v['name'],
-                             feature_function_target=v['target'],
-                             feature_function_call=v['func'],
-                             feature_function_operator=v['op'],
-                             bins=default_bins)
-            for k, v in self.F.constraints().items()
-        ]
+        fts = list()
+        for k, v in self.F.constraints().items():
+            bin_key = f"bin_{v['name']}"
+            b = self.bins[bin_key] if bin_key in self.bins else self.bins['bin_all']
+            ft = FeatureDimension(name=v['name'],
+                                  feature_function_target=v['target'],
+                                  feature_function_call=v['func'],
+                                  feature_function_operator=v['op'],
+                                  bins=b)
+            fts.append(ft)
+        return fts
 
 
-# read configuration file
-config.read('config.ini')
-
+# path to configuration file
+config_path = 'config.ini'
 logging.info("Start map elites")
-map_E = MapElitesContinuousOpt.from_config(MapElitesContinuousOpt, config)
+map_E = MapElitesContinuousOpt.from_config(MapElitesContinuousOpt, config_path)
 map_E.run()

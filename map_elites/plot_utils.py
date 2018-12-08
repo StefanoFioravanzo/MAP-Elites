@@ -7,6 +7,7 @@ import matplotlib.ticker as ticker
 from matplotlib.colors import LogNorm
 
 
+# TODO: Gli assi sono invertiti g0:y e g1:x. Da vedere cosa succede con dimensioni > 2
 # TODO: Invert color mapping in case of maximization
 def plot_heatmap(data, x_axis=None, y_axis=None, x_label=None, y_label=None,
                      title="MapElites fitness map", minimization=True, savefig_path=None):
@@ -54,13 +55,13 @@ def plot_heatmap(data, x_axis=None, y_axis=None, x_label=None, y_label=None,
 
     # set ticks
     x_ticks_pos = [0.5]
-    y_ticks_pos = range(0, d[1]+1)
+    y_ticks_pos = range(0, d[0]+1)
     if len(d) == 2:
-        x_ticks_pos = range(0, d[0]+1)
+        x_ticks_pos = range(0, d[1]+1)
     if len(d) > 2:
-        x_ticks_pos = range(0, d[0]+1, d[2])
+        x_ticks_pos = range(0, d[1]+1, d[2])
     if len(d) > 3:
-        y_ticks_pos = range(0, d[1]+1, d[3])
+        y_ticks_pos = range(0, d[0]+1, d[3])
 
     ax.xaxis.set_major_locator(ticker.FixedLocator(x_ticks_pos))
     ax.xaxis.set_major_formatter(ticker.FixedFormatter(x_axis))

@@ -1,18 +1,20 @@
 from abc import ABC, abstractmethod
 
 import os
-from shutil import copyfile
-from pathlib import Path
-from datetime import datetime
 import math
+import json
+import logging
 import operator
 import numpy as np
-import logging
+import configparser
 from tqdm import tqdm
+from pathlib import Path
+from shutil import copyfile
+from datetime import datetime
 
-from .ea_operators import EaOperators
-from .plot_utils import plot_heatmap
 import functions
+from .plot_utils import plot_heatmap
+from .ea_operators import EaOperators
 
 
 class FeatureDimension:
@@ -77,6 +79,7 @@ class MapElites(ABC):
                  mutation_args,
                  crossover_op,
                  crossover_args,
+                 bins,
                  minimization=True,
                  ):
         """
@@ -92,9 +95,9 @@ class MapElites(ABC):
             self.place_operator = operator.ge
 
         self.F = optimization_function(optimization_function_dimensions)
-
         self.iterations = iterations
         self.random_solutions = random_solutions
+        self.bins = bins
 
         self.mutation_op = mutation_op
         self.mutation_args = mutation_args
@@ -129,16 +132,21 @@ class MapElites(ABC):
         logging.info("Configuration completed.")
 
     @staticmethod
-    def from_config(cls, config):
-        # set numpy random seed
+    def from_config(cls, config_path):
+        # Read configuration file
+        config = configparser.ConfigParser()
+        config.read(config_path)
+
+        # RANDOM SEED
         seed = config['mapelites'].getint('seed')
         np.random.seed(seed)
 
+        # MAIN MAPELITES CONF
         iterations = config['mapelites'].getint('iterations')
         random_solutions = config['mapelites'].getint('initial_random_population')
         minimization = config['mapelites'].getboolean('minimization')
 
-        # Get optimization function
+        # OPTIMIZATION FUNCTION
         function_name = config['opt_function']['name']
         function_dimensions = config['opt_function'].getint('dimensions')
         function_class = getattr(functions, function_name)
@@ -148,13 +156,36 @@ class MapElites(ABC):
                 f"Optimization function class {function_class.__name__} must be a "
                 f"subclass of {functions.ConstrainedFunction.__name__}")
 
-        # get list of ea operators
+        # BINS
+        d = dict(config.items('opt_function'))
+        bins_names = filter(lambda s: s.startswith("bin"), d.keys())
+        bins = {_k: d[_k] for _k in bins_names}
+
+        # substitute strings "inf" at start and end of bins with -np.inf and np.inf
+        for k, v in bins.items():
+            b = v.split(',')
+            inf_start = (b[0] == "inf")
+            inf_end = (b[len(b)-1] == "inf")
+            if inf_start:
+                b.pop(0)
+            if inf_end:
+                b.pop(len(b)-1)
+            # convert strings to floats
+            b = list(map(float, b))
+            # add back the inf values
+            if inf_start:
+                b.insert(0, -np.inf)
+            if inf_end:
+                b.insert(len(b), np.inf)
+            bins[k] = b
+
+        # EA OPERATORS
         ea_operators = [func for func in dir(EaOperators)
                         if callable(getattr(EaOperators, func))
                         and not func.startswith("__", 0, 2)
                         ]
 
-        # get mutation and selection operators
+        # MUTATION AND CROSSOVER OPS
         mutation_op = config['mutation']['type']
         mutation_fun = f"{str.lower(mutation_op)}_mutation"
         if mutation_fun not in ea_operators:
@@ -189,6 +220,7 @@ class MapElites(ABC):
             crossover_op=crossover_fun,
             crossover_args=crossover_args,
             minimization=minimization,
+            bins=bins
         )
 
     def generate_initial_population(self):

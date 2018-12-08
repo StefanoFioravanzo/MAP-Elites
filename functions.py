@@ -44,16 +44,16 @@ class Rosenbrok(ConstrainedFunction):
         http://en.wikipedia.org/wiki/Test_functions_for_optimization
         """
         return {
-            "cubic":
+            "g1":
                 {
-                    "name": "cubic_function",
+                    "name": "g1",
                     "func": lambda x: (x[0] - 1.) ** 3. - x[1] + 1.,
                     "op": operator.le,
                     "target": lambda x: 0
                 },
-            "line":
+            "g2":
                 {
-                    "name": "cubic_function",
+                    "name": "g2",
                     "func": lambda x: x[0] + x[1] - 2.,
                     "op": operator.le,
                     "target": lambda x: 0
@@ -82,9 +82,9 @@ class MishraBird(ConstrainedFunction):
         http://en.wikipedia.org/wiki/Test_functions_for_optimization
         """
         return {
-            "circle":
+            "g1":
                 {
-                    "name": "circle_function",
+                    "name": "g1",
                     "func": lambda x: (x[0] + 5) ** 2 + (x[1] + 5) ** 2,
                     "op": operator.lt,
                     "target": lambda x: 0
@@ -119,9 +119,9 @@ class Townsend(ConstrainedFunction):
             return a ** 2 + (2 * sin(t)) ** 2
 
         return {
-            "const1":
+            "g1":
                 {
-                    "name": "const1",
+                    "name": "g1",
                     "func": const1,
                     "op": operator.gt,
                     "target": lambda x: x[0] ** 2 + x[1] ** 2
@@ -156,9 +156,9 @@ class Simionescu(ConstrainedFunction):
             return b ** b
 
         return {
-            "const1":
+            "g1":
                 {
-                    "name": "const1",
+                    "name": "g1",
                     "func": const1,
                     "op": operator.ge,
                     "target": lambda x: x[0] ** 2 + x[1] ** 2
