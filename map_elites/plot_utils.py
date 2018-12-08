@@ -37,7 +37,7 @@ def plot_heatmap(data, x_axis=None, y_axis=None, x_label=None, y_label=None,
         mask=mask,
         annot=True,
         # norm=log_norm,
-        fmt=".1f",
+        fmt=".4f",
         annot_kws={'size': 10},
         # cbar_kws={"ticks": cbar_ticks},
         linewidths=.5,
@@ -105,14 +105,11 @@ def plot_heatmap(data, x_axis=None, y_axis=None, x_label=None, y_label=None,
     plt.show()
 
 
-def main():
+def _test_plotting():
     """
     Test plot utils by calling this module directly
     """
-
-    # test_heat_map()
     # Generate some random data
-
     values = np.reshape(np.random.random((5, 5)), (-1,))
     # The two axis must be represented as strings
     x_ax = ['0', '1', '2', '3', '4']
@@ -124,4 +121,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    _test_plotting()

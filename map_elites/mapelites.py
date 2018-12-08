@@ -130,6 +130,10 @@ class MapElites(ABC):
 
     @staticmethod
     def from_config(cls, config):
+        # set numpy random seed
+        seed = config['mapelites'].getint('seed')
+        np.random.seed(seed)
+
         iterations = config['mapelites'].getint('iterations')
         random_solutions = config['mapelites'].getint('initial_random_population')
         minimization = config['mapelites'].getboolean('minimization')
@@ -234,7 +238,8 @@ class MapElites(ABC):
         """
         b = self.map_x_to_b(x)
         perf = self.performance_measure(x)
-
+        if perf == 0.:
+            print(perf)
         if self.place_operator(perf, self.performances[b]):
             logging.info(f"PLACE: Placing individual {x} at {b} with perf: {perf}")
             self.performances[b] = perf

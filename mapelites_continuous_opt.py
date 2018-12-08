@@ -8,8 +8,6 @@ import numpy as np
 from map_elites.mapelites import MapElites, FeatureDimension
 
 logging.basicConfig(filename="log.log", level=logging.INFO)
-# this should set the seed project wide
-np.random.seed(1)
 config = configparser.ConfigParser()
 
 
