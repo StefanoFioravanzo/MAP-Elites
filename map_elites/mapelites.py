@@ -51,11 +51,10 @@ class FeatureDimension:
             if self.feature_function_operator(
                     self.feature_function_call(x),
                     self.feature_function_target(x)):
-                return 0
+                return -.1
             else:
                 return math.fabs(self.feature_function_call(x) - self.feature_function_target(x))
 
-    # TODO: Check reason the values of contraints explode after some iterations
     def discretize(self, value):
         """
         Get bin (index) of dimension from real value
@@ -66,7 +65,7 @@ class FeatureDimension:
         # - 1 because digitize is 1-indexed
         return index - 1
 
-# TODO: Check why as the iterations increase the value inside the the map of elites increases as well
+
 # TODO: Use class method for initialization
 class MapElites(ABC):
 
@@ -116,7 +115,10 @@ class MapElites(ABC):
         ft_bins = [len(ft.bins) - 1 for ft in self.feature_dimensions]
 
         # Map of Elites: Initialize data structures to store solutions and fitness values
-        self.solutions = np.full(ft_bins, (np.inf, np.inf), dtype=(float, 2))
+        self.solutions = np.full(
+            ft_bins, (np.inf, ) * optimization_function_dimensions,
+            dtype=(float, optimization_function_dimensions)
+        )
         self.performances = np.full(ft_bins, np.inf)
 
         # configure logging
@@ -131,7 +133,7 @@ class MapElites(ABC):
 
         logging.info("Configuration completed.")
 
-    @staticmethod
+    @classmethod
     def from_config(cls, config_path):
         # Read configuration file
         config = configparser.ConfigParser()

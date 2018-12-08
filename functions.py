@@ -29,6 +29,12 @@ class ConstrainedFunction(ABC):
 
 class Rosenbrok(ConstrainedFunction):
 
+    def __init__(self, dimensions):
+        if dimensions != 2:
+            raise ValueError(f"Dimensions must be equal to 2 for function {self.__class__.__name__}")
+
+        super().__init__(dimensions)
+
     def evaluate(self, X):
         """
         http://en.wikipedia.org/wiki/Rosenbrock_function
@@ -69,6 +75,12 @@ class Rosenbrok(ConstrainedFunction):
 
 class MishraBird(ConstrainedFunction):
 
+    def __init__(self, dimensions):
+        if dimensions != 2:
+            raise ValueError(f"Dimensions must be equal to 2 for function {self.__class__.__name__}")
+
+        super().__init__(dimensions)
+
     def evaluate(self, X):
         x = X[0]
         y = X[1]
@@ -99,6 +111,12 @@ class MishraBird(ConstrainedFunction):
 
 
 class Townsend(ConstrainedFunction):
+
+    def __init__(self, dimensions):
+        if dimensions != 2:
+            raise ValueError(f"Dimensions must be equal to 2 for function {self.__class__.__name__}")
+
+        super().__init__(dimensions)
 
     def evaluate(self, X):
         x = X[0]
@@ -137,6 +155,12 @@ class Townsend(ConstrainedFunction):
 
 # TODO: Crea numeri complessi?
 class Simionescu(ConstrainedFunction):
+
+    def __init__(self, dimensions):
+        if dimensions != 2:
+            raise ValueError(f"Dimensions must be equal to 2 for function {self.__class__.__name__}")
+
+        super().__init__(dimensions)
 
     def evaluate(self, X):
         x = X[0]

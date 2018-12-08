@@ -8,12 +8,16 @@ from matplotlib.colors import LogNorm
 
 
 # TODO: Try to Port Seaborn Plot to Bokeh
-# TODO: Gli assi sono invertiti g0:y e g1:x. Da vedere cosa succede con dimensioni > 2
 # TODO: Invert color mapping in case of maximization
 def plot_heatmap(data, x_axis=None, y_axis=None, x_label=None, y_label=None,
-                     title="MapElites fitness map", minimization=True, savefig_path=None):
+                     title="MapElites fitness map", minimization=True, savefig_path=None, plot_annotations=False):
     # get data dimensionality
     d = data.shape
+
+    # Show plot annotations just when we have two dimensions
+    # With higher dimensions there woould not be enough space
+    if len(d) == 2:
+        plot_annotations = True
 
     # reshape data to obtain a 2d heatmap
     if len(d) == 1:
@@ -43,7 +47,7 @@ def plot_heatmap(data, x_axis=None, y_axis=None, x_label=None, y_label=None,
     ax = sns.heatmap(
         df_data,
         mask=mask,
-        # annot=True,
+        annot=plot_annotations,
         # norm=log_norm,
         fmt=".4f",
         annot_kws={'size': 10},

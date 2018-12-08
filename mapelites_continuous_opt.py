@@ -79,5 +79,5 @@ class MapElitesContinuousOpt(MapElites):
 # path to configuration file
 config_path = 'config.ini'
 logging.info("Start map elites")
-map_E = MapElitesContinuousOpt.from_config(MapElitesContinuousOpt, config_path)
+map_E = MapElitesContinuousOpt.from_config(config_path)
 map_E.run()
