@@ -195,6 +195,11 @@ class Simionescu(ConstrainedFunction):
             (-1.25, 1.25)
         ]
 
+# ====================================================================================================
+# Some functions implemented from CEC 2010 Competition on Constrained Real- Parameter Optimization
+# Reference: http://www3.ntu.edu.sg/home/epnsugan/index_files/CEC10-Const/TR-April-2010.pdf
+# ====================================================================================================
+
 
 class C16(ConstrainedFunction):
 

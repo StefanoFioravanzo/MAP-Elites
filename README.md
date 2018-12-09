@@ -41,7 +41,7 @@ All the configuration can be done using the `config.ini` file provided at the ro
 ; random seed
 seed = 54
 ; number of initial random samples
-initial_random_population = 100
+bootstrap_individuals = 100
 ; numer of map elites iterations
 iterations = 10000
 ; True: solve a minimization problem. False: solve a maximization problem

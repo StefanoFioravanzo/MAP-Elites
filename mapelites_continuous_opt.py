@@ -1,10 +1,10 @@
-#!/usr/bin/env python
-# coding: utf-8
-
 import logging
+
 import numpy as np
 
-from map_elites.mapelites import MapElites, FeatureDimension
+# local imports
+from map_elites.mapelites import MapElites
+from feature_dimension import FeatureDimension
 
 logging.basicConfig(filename="log.log", level=logging.INFO)
 

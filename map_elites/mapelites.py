@@ -1,79 +1,29 @@
-from abc import ABC, abstractmethod
-
-import os
-import math
-import json
 import logging
 import operator
-import numpy as np
 import configparser
+
+import numpy as np
+
 from tqdm import tqdm
 from pathlib import Path
 from shutil import copyfile
 from datetime import datetime
+from abc import ABC, abstractmethod
 
+# local imports
 import functions
+from feature_dimension import FeatureDimension
 from .plot_utils import plot_heatmap
 from .ea_operators import EaOperators
 
 
-class FeatureDimension:
-    """
-    Describes a feature dimension
-    """
-
-    def __init__(self, name, feature_function_target, feature_function_call, feature_function_operator, bins):
-        """
-        :param name: Name or description of the feature dimension
-        :param feature_function: Feature function or simulation, given a candidate solution as input
-        :param bins: Array of bins, from starting value to last value of last bin
-        """
-        self.name = name
-
-        self.feature_function_call = feature_function_call
-        self.feature_function_target = feature_function_target
-        self.feature_function_operator = feature_function_operator
-
-        if self.feature_function_operator not in [operator.eq, operator.le, operator.lt, operator.ge, operator.gt]:
-            raise ValueError(f"Feature function operator not recognized")
-
-        self.bins = bins
-
-    def feature_descriptor(self, x):
-        """
-        Simulate the candidate solution x and record its feature descriptor
-        :param x: genotype of candidate solution x
-        :return: The amount of error from the feature descriptor bound
-        """
-        if self.feature_function_operator == operator.eq:
-            return math.fabs(self.feature_function_call(x) - self.feature_function_target(x))
-        else:
-            if self.feature_function_operator(
-                    self.feature_function_call(x),
-                    self.feature_function_target(x)):
-                return -.1
-            else:
-                return math.fabs(self.feature_function_call(x) - self.feature_function_target(x))
-
-    def discretize(self, value):
-        """
-        Get bin (index) of dimension from real value
-        """
-        index = np.digitize([value], self.bins)[0]
-        if index in [0, len(self.bins)]:
-            raise Exception(f"Constraint {self.name}: value {value} outside of bins {self.bins}")
-        # - 1 because digitize is 1-indexed
-        return index - 1
-
-
-# TODO: Use class method for initialization
 class MapElites(ABC):
 
     def __init__(self,
                  iterations,
                  optimization_function,
                  optimization_function_dimensions,
-                 random_solutions,
+                 bootstrap_individuals,
                  mutation_op,
                  mutation_args,
                  crossover_op,
@@ -82,8 +32,15 @@ class MapElites(ABC):
                  minimization=True,
                  ):
         """
-        :param iterations:
-        :param random_solutions:
+        :param iterations: Number of evolutionary iterations
+        :param optimization_function: The function to be optimized
+        :param optimization_function_dimensions: The number of dimensions of the function to be optimized
+        :param bootstrap_individuals: Number of individuals randomly generated to bootstrap the algorithm
+        :param mutation_op: Mutation function
+        :param mutation_args: Mutation function arguments
+        :param crossover_op: Crossover function
+        :param crossover_args: Crossover function arguments
+        :param bins: Bins for feature dimensions
         :param minimization: True if solving a minimization problem. False if solving a maximization problem.
         """
         self.minimization = minimization
@@ -95,7 +52,7 @@ class MapElites(ABC):
 
         self.F = optimization_function(optimization_function_dimensions)
         self.iterations = iterations
-        self.random_solutions = random_solutions
+        self.random_solutions = bootstrap_individuals
         self.bins = bins
 
         self.mutation_op = mutation_op
@@ -109,7 +66,7 @@ class MapElites(ABC):
                 not all(isinstance(ft, FeatureDimension) for ft in self.feature_dimensions):
             raise Exception(
                 f"MapElites: `feature_dimensions` must be either a list or a tuple "
-                f"object of {FeatureDimension.__name__} objects")
+                f"object of { FeatureDimension.__name__} objects")
 
         # get number of bins for each feature dimension
         ft_bins = [len(ft.bins) - 1 for ft in self.feature_dimensions]
@@ -135,6 +92,11 @@ class MapElites(ABC):
 
     @classmethod
     def from_config(cls, config_path):
+        """
+        Read config file and create a MAP-Elites instance.
+        :param config_path: Path to config.ini file
+        :return:
+        """
         # Read configuration file
         config = configparser.ConfigParser()
         config.read(config_path)
@@ -145,7 +107,7 @@ class MapElites(ABC):
 
         # MAIN MAPELITES CONF
         iterations = config['mapelites'].getint('iterations')
-        random_solutions = config['mapelites'].getint('initial_random_population')
+        bootstrap_individuals = config['mapelites'].getint('bootstrap_individuals')
         minimization = config['mapelites'].getboolean('minimization')
 
         # OPTIMIZATION FUNCTION
@@ -216,7 +178,7 @@ class MapElites(ABC):
             iterations=iterations,
             optimization_function=function_class,
             optimization_function_dimensions=function_dimensions,
-            random_solutions=random_solutions,
+            bootstrap_individuals=bootstrap_individuals,
             mutation_op=mutation_fun,
             mutation_args=mutation_args,
             crossover_op=crossover_fun,
@@ -226,33 +188,36 @@ class MapElites(ABC):
         )
 
     def generate_initial_population(self):
+        """
+        Bootstrap the algorithm by generating `self.bootstrap_individuals` individuals
+        randomly sampled from a uniform distribution
+        """
         logging.info("Generate initial population")
-        # G the number of initial random solutions
         for _ in range(0, self.random_solutions):
             x = self.generate_random_solution()
             # add solution to elites computing features and performance
             self.place_in_mapelites(x)
 
-        # self.plot_map_of_elites()
-
     def run(self):
+        """
+        Main iteration loop of MAP-Elites
+        """
         # start by creating an initial set of random solutions
         self.generate_initial_population()
 
+        # tqdm: progress bar
         with tqdm(total=self.iterations, desc="Iterations completed") as pbar:
             for i in range(0, self.iterations):
                 logging.info(f"ITERATION {i}")
                 if self.stopping_criteria():
                     break
 
-                # possible solution
-                x = None
                 logging.info("Select and mutate.")
-                # get the index of a random individual
+                # get the index of a random individual from the map of elites
                 ind = self.random_selection(individuals=1)[0]
-
-                # TODO: random variation (+check for validity)
+                # mutate the individual
                 ind = self.mutation_op(ind, **self.mutation_args)[0]
+                # place the new individual in the map of elites
                 self.place_in_mapelites(ind, pbar=pbar)
 
         # save results, display metrics and plot statistics
@@ -263,17 +228,20 @@ class MapElites(ABC):
         """
         Puts a solution inside the N-dimensional map of elites space.
         The following criteria is used:
-            - Compute the feature descriptor of the solution to find the correct
+
+        - Compute the feature descriptor of the solution to find the correct
                 cell in the N-dimensional space
-            - Compute the performance of the solution
-            - Check if the cell is empty of the previous performance is worse
-                -> place new solution in the cell
-        :param x: genotype of a solution
+        - Compute the performance of the solution
+        - Check if the cell is empty or if the previous performance is worse
+            - Place new solution in the cell
+        :param x: genotype of an individual
+        :param pbar: TQDM progress bar instance
         """
+        # get coordinates in the feature space
         b = self.map_x_to_b(x)
+        # performance of the optimization function
         perf = self.performance_measure(x)
-        if perf == 0.:
-            print(perf)
+        # place operator performs either minimization or maximization
         if self.place_operator(perf, self.performances[b]):
             logging.info(f"PLACE: Placing individual {x} at {b} with perf: {perf}")
             self.performances[b] = perf
@@ -285,7 +253,7 @@ class MapElites(ABC):
 
     def random_selection(self, individuals=1):
         """
-        Select an elite x from the current map of elites
+        Select an elite x from the current map of elites.
         The selection is done by selecting a random bin for each feature
         dimension, until a bin with a value is found.
         :param individuals: The number of individuals to randomly select
@@ -293,6 +261,10 @@ class MapElites(ABC):
         """
 
         def _get_random_index():
+            """
+            Get a random cell in the N-dimensional feature space
+            :return: N-dimensional tuple of integers
+            """
             indexes = tuple()
             for ft in self.feature_dimensions:
                 rnd_ind = np.random.randint(0, len(ft.bins) - 1, 1)[0]
@@ -303,7 +275,7 @@ class MapElites(ABC):
             """
             Checks if the selected index points to a NaN or Inf solution (not yet initialized)
             The solution is considered as NaN/Inf if any of the dimensions of the individual is NaN/Inf
-            :return:
+            :return: Boolean
             """
             return any([x == np.nan or np.abs(x) == np.inf for x in self.solutions[index]])
 
@@ -320,6 +292,9 @@ class MapElites(ABC):
         return inds
 
     def save_logs(self):
+        """
+        Save logs, config file and data structures to log folder
+        """
         copyfile('log.log', self.log_dir_path / 'log.log')
         copyfile('config.ini', self.log_dir_path / 'config.ini')
         np.save(self.log_dir_path / 'performances', self.performances)
@@ -329,6 +304,7 @@ class MapElites(ABC):
         """
         Plot a heatmap of elites
         """
+        # Stringify the bins to be used as strings in the plot axes
         if len(self.feature_dimensions) == 1:
             y_ax = ["-"]
             x_ax = [str(d) for d in self.feature_dimensions[0].bins]
