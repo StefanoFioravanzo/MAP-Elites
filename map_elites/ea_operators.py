@@ -1,5 +1,6 @@
 import random
 
+from math import abs
 from itertools import repeat
 from collections import Sequence
 
@@ -48,7 +49,7 @@ class EaOperators:
     #################################################
 
     @staticmethod
-    def gaussian_mutation(individual, mu, sigma, indpb):
+    def gaussian_mutation(individual, mu, sigma, indpb, boundary_management=None, boundaries=None):
         """
         This function applies a gaussian mutation of mean *mu* and standard
         deviation *sigma* on the input individual. This mutation expects a
@@ -62,6 +63,43 @@ class EaOperators:
         :param indpb: Independent probability for each attribute to be mutated.
         :returns: A tuple of one individual.
         """
+
+        def _default(x, delta, _):
+            return x + delta
+
+        def _saturation(x, delta, boundary):
+            assert boundary[0] <= x <= boundary[1]
+            if delta > 0 and x + delta > boundary[1]:
+                return boundary[1]
+            if delta < 0 and x + delta < boundary[0]:
+                return boundary[0]
+            return x + delta
+
+        def _bounce(x, delta, boundary):
+            assert boundary[0] <= x <= boundary[1]
+            if delta > 0 and x + delta > boundary[1]:
+                return boundary[1] - abs(x + delta - boundary[1])
+            if delta < 0 and x + delta < boundary[0]:
+                return boundary[0] + abs(x + delta - boundary[0])
+            return x + delta
+
+        def _toroidal(x, delta, boundary):
+            assert boundary[0] <= x <= boundary[1]
+            if delta > 0 and x + delta > boundary[1]:
+                return boundary[0] + abs(x + delta - boundary[1])
+            if delta < 0 and x + delta < boundary[0]:
+                return boundary[1] - abs(x + delta - boundary[0])
+
+        if boundaries:
+            assert len(individual) == len(boundaries)
+        bound_func = _default
+        if boundary_management == "saturation":
+            bound_func = _saturation
+        if boundary_management == "bounce":
+            bound_func = _bounce
+        if boundary_management == "toroidal":
+            bound_func = _toroidal
+
         size = len(individual)
         if not isinstance(mu, Sequence):
             mu = repeat(mu, size)
@@ -72,8 +110,9 @@ class EaOperators:
         elif len(sigma) < size:
             raise IndexError(f"sigma must be at least the size of individual: {len(sigma)} < {size}")
 
-        for i, m, s in zip(range(size), mu, sigma):
+        for i, m, s, b in zip(range(size), mu, sigma, boundaries):
             if random.random() < indpb:
-                individual[i] += random.gauss(m, s)
+                mut = random.gauss(m, s)
+                individual[i] = bound_func(individual[i], mut, b)
 
         return individual,

@@ -76,6 +76,12 @@ indpb = 0.5
 ; mutation function taken from ea_operators.py file.
 ; name of called function is {type}_mutation(). If `type = GAUSSIAN` then the function call is `gaussian_mutation()`
 type = GAUSSIAN
+; Define how to manage the boundaries during mutation, meaning how the algorithm should behave in case it mutates outside of the function domain.
+; There are three possible cases:
+; - `saturation`: x in [a,b], if after mutation x>b -> x=b; if x<a -> x=a
+; - `bounce`: if x is mutated outside [a, b] it is bounced back by the remaining delta
+; - `toroidal`: if x is mutated outside [a, b], x is bounced to the other bound by the remaining delta, 'pac-man' style
+boundary = saturation
 ; list of arguments to the above function
 mu = 0
 sigma = 0.2

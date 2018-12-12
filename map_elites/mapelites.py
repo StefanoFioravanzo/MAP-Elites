@@ -57,6 +57,8 @@ class MapElites(ABC):
 
         self.mutation_op = mutation_op
         self.mutation_args = mutation_args
+        # add to the mutation args the boundaries (domain) of the optimization function
+        self.mutation_args['boundaries'] = self.F.get_domain()
         self.crossover_op = crossover_op
         self.crossover_args = crossover_args
 
@@ -155,12 +157,19 @@ class MapElites(ABC):
         if mutation_fun not in ea_operators:
             raise ValueError(f"Mutation operator {mutation_op} not implemented.")
         mutation_fun = getattr(EaOperators, mutation_fun)
+        mutation_boundary_management = config['mutation']['boundary']
+
+        mutation_boundary_values = ['saturation', 'bounce', 'toroidal']
+        if mutation_boundary_management not in mutation_boundary_values:
+            raise ValueError(f"The mutation boundary management must be one of {mutation_boundary_values}")
+
         mutation_args = None
         if mutation_op == "GAUSSIAN":
             mutation_args = {
                 "mu": config['mutation'].getfloat('mu'),
                 "sigma": config['mutation'].getfloat('sigma'),
-                "indpb": config['mutation'].getfloat('indpb')
+                "indpb": config['mutation'].getfloat('indpb'),
+                "boundary_management": mutation_boundary_management
             }
 
         crossover_op = config['crossover']['type']
