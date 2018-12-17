@@ -4,11 +4,8 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-from matplotlib.colors import LogNorm
 
 
-# TODO: Try to Port Seaborn Plot to Bokeh
-# TODO: Invert color mapping in case of maximization
 def plot_heatmap(data,
                  x_axis=None,
                  y_axis=None,
@@ -42,13 +39,6 @@ def plot_heatmap(data,
     df_data = pd.DataFrame(data)
     df_data.replace([np.inf, -np.inf], np.nan, inplace=True)
 
-    # TODO: Allow for log scale colormap w/ negative value
-    min = df_data.min().min()
-    max = df_data.max().max()
-    # log_norm = LogNorm(vmin=min, vmax=max)
-    # cbar_ticks = [math.pow(10, i)
-    #               for i in range(math.floor(math.log10(min)), 1 + math.ceil(math.log10(max)))]
-
     mask = df_data.isnull()
 
     ax = sns.heatmap(
@@ -65,6 +55,7 @@ def plot_heatmap(data,
         xticklabels=False,
         yticklabels=False
     )
+
     if highlight_best:
         if minimization:
             best = df_data.min().min()
@@ -145,7 +136,7 @@ def _test_plotting():
 
     data = np.stack([np.repeat(x_ax, len(y_ax)), np.tile(y_ax, len(x_ax)), values], axis=1)
 
-    plot_heatmap(data, x_ax, y_ax, "X", "Y")
+    plot_heatmap(data, x_ax, y_ax)
 
 
 if __name__ == "__main__":

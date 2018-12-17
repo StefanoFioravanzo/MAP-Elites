@@ -12,7 +12,7 @@ from abc import ABC, abstractmethod
 
 # local imports
 import functions
-from feature_dimension import FeatureDimension
+from .feature_dimension import FeatureDimension
 from .plot_utils import plot_heatmap
 from .ea_operators import EaOperators
 
@@ -30,6 +30,8 @@ class MapElites(ABC):
                  crossover_args,
                  bins,
                  plot_args,
+                 log_dir,
+                 config_path,
                  minimization=True,
                  ):
         """
@@ -87,20 +89,26 @@ class MapElites(ABC):
         # empty log file from potential previous logs
         open('log.log', 'w').close()
 
-        now = datetime.now().strftime("%Y%m%d%H%M%S")
-        self.log_dir_name = f"log_{now}"
-        self.log_dir_path = Path(f'logs/{self.log_dir_name}')
+        if log_dir:
+            self.log_dir_path = Path(log_dir)
+        else:
+            now = datetime.now().strftime("%Y%m%d%H%M%S")
+            self.log_dir_name = f"log_{now}"
+            self.log_dir_path = Path(f'logs/{self.log_dir_name}')
         # create log dir
         self.log_dir_path.mkdir(parents=True)
+        # save config file
+        copyfile(config_path, self.log_dir_path / 'config.ini')
 
+        logging.basicConfig(filename=self.log_dir_path / "log.log", level=logging.INFO)
         logging.info("Configuration completed.")
 
     @classmethod
-    def from_config(cls, config_path):
+    def from_config(cls, config_path, log_dir=None):
         """
         Read config file and create a MAP-Elites instance.
         :param config_path: Path to config.ini file
-        :return:
+        :param log_dir: Absolute path to logging directory
         """
         # Read configuration file
         config = configparser.ConfigParser()
@@ -201,6 +209,8 @@ class MapElites(ABC):
             crossover_args=crossover_args,
             minimization=minimization,
             plot_args=plot_args,
+            log_dir=log_dir,
+            config_path=config_path,
             bins=bins
         )
 
@@ -312,8 +322,6 @@ class MapElites(ABC):
         """
         Save logs, config file and data structures to log folder
         """
-        copyfile('log.log', self.log_dir_path / 'log.log')
-        copyfile('config.ini', self.log_dir_path / 'config.ini')
         np.save(self.log_dir_path / 'performances', self.performances)
         np.save(self.log_dir_path / "solutions", self.solutions)
 

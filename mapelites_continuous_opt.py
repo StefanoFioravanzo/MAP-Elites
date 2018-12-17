@@ -1,10 +1,11 @@
 import logging
+import argparse
 
 import numpy as np
 
 # local imports
 from map_elites.mapelites import MapElites
-from feature_dimension import FeatureDimension
+from map_elites.feature_dimension import FeatureDimension
 
 logging.basicConfig(filename="log.log", level=logging.INFO)
 
@@ -75,8 +76,24 @@ class MapElitesContinuousOpt(MapElites):
         return fts
 
 
-# path to configuration file
-config_path = 'config.ini'
-logging.info("Start map elites")
-map_E = MapElitesContinuousOpt.from_config(config_path)
-map_E.run()
+def main():
+    parser = argparse.ArgumentParser(description='MAP-Elites')
+    parser.add_argument('--conf', type=str, help='Absolute path to conf file')
+    parser.add_argument('--logdir', type=str, help='Absolute path to log directory')
+
+    args = parser.parse_args()
+
+    # path to configuration file
+    if 'conf' in args:
+        config_path = args.conf
+    else:
+        config_path = 'config.ini'
+    print(f"\tUsing config file: {config_path}")
+    print(f"\tUsing log dir: {args.logdir}")
+
+    map_E = MapElitesContinuousOpt.from_config(config_path, args.logdir)
+    map_E.run()
+
+
+if __name__ == "__main__":
+    main()
