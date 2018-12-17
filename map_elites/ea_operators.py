@@ -1,6 +1,5 @@
 import random
 
-from math import abs
 from itertools import repeat
 from collections import Sequence
 

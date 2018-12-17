@@ -9,8 +9,14 @@ from matplotlib.colors import LogNorm
 
 # TODO: Try to Port Seaborn Plot to Bokeh
 # TODO: Invert color mapping in case of maximization
-def plot_heatmap(data, x_axis=None, y_axis=None, x_label=None, y_label=None,
-                     title="MapElites fitness map", minimization=True, savefig_path=None, plot_annotations=False):
+def plot_heatmap(data,
+                 x_axis=None,
+                 y_axis=None,
+                 title="MapElites fitness map",
+                 minimization=True,
+                 savefig_path=None,
+                 plot_annotations=False,
+                 highlight_best=True):
     # get data dimensionality
     d = data.shape
 
@@ -44,6 +50,7 @@ def plot_heatmap(data, x_axis=None, y_axis=None, x_label=None, y_label=None,
     #               for i in range(math.floor(math.log10(min)), 1 + math.ceil(math.log10(max)))]
 
     mask = df_data.isnull()
+
     ax = sns.heatmap(
         df_data,
         mask=mask,
@@ -58,10 +65,14 @@ def plot_heatmap(data, x_axis=None, y_axis=None, x_label=None, y_label=None,
         xticklabels=False,
         yticklabels=False
     )
+    if highlight_best:
+        if minimization:
+            best = df_data.min().min()
+        else:
+            best = df_data.max().max()
+        sns.heatmap(df_data, mask=df_data != best, cmap="Reds_r", cbar=False)
 
     ax.set_title(f"{title} - white cells are null values (not initialized)")
-    ax.set_xlabel(x_label)
-    ax.set_ylabel(y_label)
     ax.invert_yaxis()
 
     # set ticks
@@ -73,6 +84,11 @@ def plot_heatmap(data, x_axis=None, y_axis=None, x_label=None, y_label=None,
         x_ticks_pos = range(0, d[0]*d[2]+1, d[2])
     if len(d) > 3:
         y_ticks_pos = range(0, d[1]*d[3]+1, d[3])
+
+    if y_axis[0] == "-inf":
+        y_axis[0] = ""
+    if x_axis[0] == "-inf":
+        x_axis[0] = ""
 
     ax.xaxis.set_major_locator(ticker.FixedLocator(x_ticks_pos))
     ax.xaxis.set_major_formatter(ticker.FixedFormatter(x_axis))

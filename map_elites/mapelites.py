@@ -29,6 +29,7 @@ class MapElites(ABC):
                  crossover_op,
                  crossover_args,
                  bins,
+                 plot_args,
                  minimization=True,
                  ):
         """
@@ -49,6 +50,8 @@ class MapElites(ABC):
             self.place_operator = operator.lt
         else:
             self.place_operator = operator.ge
+
+        self.plot_args = plot_args
 
         self.F = optimization_function(optimization_function_dimensions)
         self.iterations = iterations
@@ -111,6 +114,10 @@ class MapElites(ABC):
         iterations = config['mapelites'].getint('iterations')
         bootstrap_individuals = config['mapelites'].getint('bootstrap_individuals')
         minimization = config['mapelites'].getboolean('minimization')
+
+        # PLOTTING CONF
+        plot_args = dict()
+        plot_args['highlight_best'] = config['plotting'].getboolean('highlight_best')
 
         # OPTIMIZATION FUNCTION
         function_name = config['opt_function']['name']
@@ -193,6 +200,7 @@ class MapElites(ABC):
             crossover_op=crossover_fun,
             crossover_args=crossover_args,
             minimization=minimization,
+            plot_args=plot_args,
             bins=bins
         )
 
@@ -321,7 +329,12 @@ class MapElites(ABC):
             x_ax = [str(d) for d in self.feature_dimensions[0].bins]
             y_ax = [str(d) for d in self.feature_dimensions[1].bins]
 
-        plot_heatmap(self.performances, x_ax, y_ax, savefig_path=self.log_dir_path)
+        plot_heatmap(self.performances,
+                     x_ax,
+                     y_ax,
+                     savefig_path=self.log_dir_path,
+                     title=f"{self.F.__class__.__name__} function",
+                     **self.plot_args)
 
     def stopping_criteria(self):
         """
