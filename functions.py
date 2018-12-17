@@ -355,7 +355,7 @@ class C03(ConstrainedFunction):
         def h1(X):
             x = np.array(X)
             z = x - self.o[:self.D]
-            return np.sum([(z[i] - z[i + i]) ** 2 for i in range(0, len(z) - 1)])
+            return np.sum([(z[i] - z[i + 1]) ** 2 for i in range(0, len(z) - 1)])
 
         return {
             "h1":
@@ -403,12 +403,12 @@ class C04(ConstrainedFunction):
         def h2(X):
             x = np.array(X)
             z = x - self.o[:self.D]
-            return np.sum([(z[i] - z[i + 1]) ** 2 for i in range(0, self.D / 2 + 1)])
+            return np.sum([(z[i] - z[i + 1]) ** 2 for i in range(0, int(self.D / 2 + 1))])
 
         def h3(X):
             x = np.array(X)
             z = x - self.o[:self.D]
-            return np.sum([(z[i] ** 2 - z[i + 1]) ** 2 for i in range(self.D / 2 + 1, self.D)])
+            return np.sum([(z[i] ** 2 - z[i + 1]) ** 2 for i in range(int(self.D / 2 + 1), self.D - 1)])
 
         def h4(X):
             x = np.array(X)
@@ -1010,7 +1010,7 @@ class C13(ConstrainedFunction):
             x = np.array(X)
             z = x - self.o[:self.D]
             return 75 - 50 * (np.sum([_z ** 2 / 4000 for _z in z]) - np.prod(
-                [cos(_z / sqrt(i)) for i, _z in enumerate(z)]) + 1)
+                [cos(_z / sqrt(i + 1)) for i, _z in enumerate(z)]) + 1)
 
         return {
             "g1":
