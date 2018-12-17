@@ -6,8 +6,8 @@ do
     key="$1"
 
     case $key in
-        -p|--parallel)
-        PARALLEL="$2"
+        -r|--runs)
+        RUNS="$2"
         shift # past argument
         shift # past value
         ;;
@@ -33,7 +33,7 @@ do
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-for i in $(seq 1 ${PARALLEL})
+for i in $(seq 1 ${RUNS})
 do
     echo Run ${i}
     mkdir -p ${LOGDIR}

@@ -14,6 +14,9 @@ def plot_heatmap(data,
                  savefig_path=None,
                  plot_annotations=False,
                  highlight_best=True):
+
+    title = f"{title} - white cells: null values"
+
     # get data dimensionality
     d = data.shape
 
@@ -61,9 +64,10 @@ def plot_heatmap(data,
             best = df_data.min().min()
         else:
             best = df_data.max().max()
+        title = f"{title} - red cell: best value"
         sns.heatmap(df_data, mask=df_data != best, cmap="Reds_r", cbar=False)
 
-    ax.set_title(f"{title} - white cells are null values (not initialized)")
+    ax.set_title(title)
     ax.invert_yaxis()
 
     # set ticks

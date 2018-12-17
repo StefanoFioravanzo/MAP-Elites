@@ -31,6 +31,7 @@ class MapElites(ABC):
                  bins,
                  plot_args,
                  log_dir,
+                 overwrite_log_dir,
                  config_path,
                  minimization=True,
                  ):
@@ -96,7 +97,7 @@ class MapElites(ABC):
             self.log_dir_name = f"log_{now}"
             self.log_dir_path = Path(f'logs/{self.log_dir_name}')
         # create log dir
-        self.log_dir_path.mkdir(parents=True)
+        self.log_dir_path.mkdir(parents=True, exist_ok=overwrite_log_dir)
         # save config file
         copyfile(config_path, self.log_dir_path / 'config.ini')
 
@@ -104,7 +105,7 @@ class MapElites(ABC):
         logging.info("Configuration completed.")
 
     @classmethod
-    def from_config(cls, config_path, log_dir=None):
+    def from_config(cls, config_path, log_dir=None, overwrite=False):
         """
         Read config file and create a MAP-Elites instance.
         :param config_path: Path to config.ini file
@@ -211,6 +212,7 @@ class MapElites(ABC):
             plot_args=plot_args,
             log_dir=log_dir,
             config_path=config_path,
+            overwrite_log_dir=overwrite,
             bins=bins
         )
 
