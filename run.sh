@@ -11,6 +11,11 @@ do
         shift # past argument
         shift # past value
         ;;
+        -f|--func)
+        FUNC="$2"
+        shift # past argument
+        shift # past value
+        ;;
         -c|--configfile)
         CONFIGFILE="$2"
         shift # past argument
@@ -37,6 +42,6 @@ for i in $(seq 1 ${RUNS})
 do
     echo Run ${i}
     mkdir -p ${LOGDIR}
-    python mapelites_continuous_opt.py --conf ${CONFIGFILE} --logdir ${LOGDIR}/${i}
+    python mapelites_continuous_opt.py --conf ${CONFIGFILE} --logdir ${LOGDIR}/${i} --func ${FUNC}
     echo
 done

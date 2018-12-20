@@ -116,11 +116,12 @@ class MapElites(ABC):
         print(f"\tUsing random seed {self.seed}")
 
     @classmethod
-    def from_config(cls, config_path, log_dir=None, overwrite=False):
+    def from_config(cls, config_path, log_dir=None, func=None, overwrite=False):
         """
         Read config file and create a MAP-Elites instance.
         :param config_path: Path to config.ini file
         :param log_dir: Absolute path to logging directory
+        :param func: Name of optimization function to use
         :param overwrite: Overwrite the log directory if already exists
         """
         # Read configuration file
@@ -143,7 +144,11 @@ class MapElites(ABC):
         plot_args['interactive'] = config['mapelites'].getboolean('interactive')
 
         # OPTIMIZATION FUNCTION
-        function_name = config['opt_function']['name']
+        # override config parameter in case it was specified from command line
+        if func:
+            function_name = func
+        else:
+            function_name = config['opt_function']['name']
         function_dimensions = config['opt_function'].getint('dimensions')
         function_class = getattr(functions, function_name)
 

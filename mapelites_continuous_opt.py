@@ -76,6 +76,7 @@ class MapElitesContinuousOpt(MapElites):
 
 def main():
     parser = argparse.ArgumentParser(description='MAP-Elites')
+    parser.add_argument('--func', type=str, help='Optimization function to use')
     parser.add_argument('--conf', type=str, help='Absolute path to conf file')
     parser.add_argument('--logdir', type=str, help='Absolute path to log directory')
     parser.add_argument('--overwrite', action='store_true')
@@ -90,7 +91,10 @@ def main():
     print(f"\tUsing config file: {config_path}")
     print(f"\tUsing log dir: {args.logdir}")
 
-    map_E = MapElitesContinuousOpt.from_config(config_path, args.logdir, args.overwrite)
+    map_E = MapElitesContinuousOpt.from_config(config_path,
+                                               log_dir=args.logdir,
+                                               func=args.func,
+                                               overwrite=args.overwrite)
     map_E.run()
 
 
