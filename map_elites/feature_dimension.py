@@ -50,7 +50,7 @@ class FeatureDimension:
         """
         Get bin (index) of dimension from real value
         """
-        index = np.digitize([value], self.bins)[0]
+        index = np.digitize([value], self.bins, right=True)[0]
         if index in [0, len(self.bins)]:
             raise Exception(f"Constraint {self.name}: value {value} outside of bins {self.bins}")
         # - 1 because digitize is 1-indexed

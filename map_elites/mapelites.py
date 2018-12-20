@@ -8,6 +8,7 @@ from tqdm import tqdm
 from pathlib import Path
 from shutil import copyfile
 from datetime import datetime
+from itertools import permutations
 from abc import ABC, abstractmethod
 
 # local imports
@@ -110,7 +111,7 @@ class MapElites(ABC):
         self.logger = logging.getLogger('map_elites')
         self.logger.setLevel(logging.DEBUG)
         # create file handler which logs even debug messages
-        fh = logging.FileHandler(self.log_dir_path / 'log.log')
+        fh = logging.FileHandler(self.log_dir_path / 'log.log', mode='w')
         fh.setLevel(logging.DEBUG)
         self.logger.addHandler(fh)
 
@@ -336,10 +337,50 @@ class MapElites(ABC):
             inds.append(self.solutions[idx])
         return inds
 
+    def get_most_promising_solution(self):
+        """
+        Get the value which solve the most number of constraints.
+        We get the minimum from the axis that present no NaN values
+        """
+
+        def _make_index(num_dimension, slice_positions):
+            """
+            Create index with dynamic slicing
+            """
+            zeros = [0] * num_dimension
+            for i in slice_positions:
+                zeros[i] = slice(None)
+            return tuple(zeros)
+
+        def _take_min(indices):
+            # min_v = np.inf
+            # for idx in indices:
+            #     _t = self.performances[idx].min()
+            #     if _t < min_v:
+            #         min_v = _t
+            # return min_v
+            return np.array([self.performances[idx].min() for idx in indices]).min()
+
+        d = len(self.performances.shape)
+        # the number of zeros (solved constraints) to use
+        for i in reversed(range(1, d+1)):
+            idx = _make_index(d, list(range(0, d-i)))
+            min_v = _take_min(list(permutations(idx)))
+            if min_v != np.inf:
+                # solution found
+                # return position of most satisfying (constraints) solution with min value
+                return min_v, i
+        return None, None
+
     def save_logs(self):
         """
         Save logs, config file and data structures to log folder
         """
+
+        best_value, solved_constraints = self.get_most_promising_solution()
+        if best_value:
+            self.logger.info(f"The minimum value solving the highest number of constraints is"
+                             f" {best_value}, with {solved_constraints} constraints solved")
         # save best oveall value and individual
         if self.minimization:
             best = self.performances.argmin()
@@ -351,6 +392,7 @@ class MapElites(ABC):
         self.logger.info(f"Best overall value: {best_perf}"
                          f" produced by individual {best_ind}"
                          f" and placed at {self.map_x_to_b(best_ind)}")
+
         np.save(self.log_dir_path / 'performances', self.performances)
         np.save(self.log_dir_path / "solutions", self.solutions)
 

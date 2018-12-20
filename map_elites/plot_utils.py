@@ -85,6 +85,10 @@ def plot_heatmap(data,
         y_axis[0] = ""
     if x_axis[0] == "-inf":
         x_axis[0] = ""
+    if y_axis[len(y_axis) - 1] == "inf":
+        y_axis[len(y_axis) - 1] = ""
+    if x_axis[len(x_axis) - 1] == "inf":
+        x_axis[len(x_axis) - 1] = ""
 
     ax.xaxis.set_major_locator(ticker.FixedLocator(x_ticks_pos))
     ax.xaxis.set_major_formatter(ticker.FixedFormatter(x_axis))
