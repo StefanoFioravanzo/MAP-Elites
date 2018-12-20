@@ -13,7 +13,8 @@ def plot_heatmap(data,
                  minimization=True,
                  savefig_path=None,
                  plot_annotations=False,
-                 highlight_best=True):
+                 highlight_best=True,
+                 interactive=True):
 
     title = f"{title} - white cells: null values"
 
@@ -125,7 +126,9 @@ def plot_heatmap(data,
     if savefig_path:
         ht_figure = ax.get_figure()
         ht_figure.savefig(savefig_path / "heatmap.png", dpi=400)
-    plt.show()
+        ht_figure.savefig(savefig_path / "heatmap.pdf", dpi=400)
+    if interactive:
+        plt.show()
 
 
 def _test_plotting():

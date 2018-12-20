@@ -88,6 +88,7 @@ class EaOperators:
                 return boundary[0] + abs(x + delta - boundary[1])
             if delta < 0 and x + delta < boundary[0]:
                 return boundary[1] - abs(x + delta - boundary[0])
+            return x + delta
 
         if boundaries:
             assert len(individual) == len(boundaries)
