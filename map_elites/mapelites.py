@@ -340,6 +340,17 @@ class MapElites(ABC):
         """
         Save logs, config file and data structures to log folder
         """
+        # save best oveall value and individual
+        if self.minimization:
+            best = self.performances.argmin()
+        else:
+            best = self.performances.argmax()
+        idx = np.unravel_index(best, self.performances.shape)
+        best_perf = self.performances[idx]
+        best_ind = self.solutions[idx]
+        self.logger.info(f"Best overall value: {best_perf}"
+                         f" produced by individual {best_ind}"
+                         f" and placed at {self.map_x_to_b(best_ind)}")
         np.save(self.log_dir_path / 'performances', self.performances)
         np.save(self.log_dir_path / "solutions", self.solutions)
 
