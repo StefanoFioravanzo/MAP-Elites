@@ -33,7 +33,7 @@ class MapElitesContinuousOpt(MapElites):
         """
         Apply the fitness continuous function to x
         """
-        logging.info("calculate performance measure")
+        self.logger.info("calculate performance measure")
         return self.F.evaluate(x)
 
     def generate_random_solution(self):
@@ -42,7 +42,7 @@ class MapElitesContinuousOpt(MapElites):
         the first solutions in the feature space, so that we start
         filling the bins
         """
-        logging.info("Generate random solution")
+        self.logger.info("Generate random solution")
 
         dimensions = self.F.get_domain()
         return np.array([

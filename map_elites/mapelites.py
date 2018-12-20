@@ -33,6 +33,7 @@ class MapElites(ABC):
                  log_dir,
                  overwrite_log_dir,
                  config_path,
+                 seed,
                  minimization=True,
                  ):
         """
@@ -47,6 +48,10 @@ class MapElites(ABC):
         :param bins: Bins for feature dimensions
         :param minimization: True if solving a minimization problem. False if solving a maximization problem.
         """
+        # set random seed
+        self.seed = seed
+        np.random.seed(self.seed)
+
         self.minimization = minimization
         # set the choice operator either to do a minimization or a maximization
         if self.minimization:
@@ -101,8 +106,17 @@ class MapElites(ABC):
         # save config file
         copyfile(config_path, self.log_dir_path / 'config.ini')
 
-        logging.basicConfig(filename=self.log_dir_path / "log.log", level=logging.INFO)
-        logging.info("Configuration completed.")
+        # Setup logging
+        self.logger = logging.getLogger('map_elites')
+        self.logger.setLevel(logging.DEBUG)
+        # create file handler which logs even debug messages
+        fh = logging.FileHandler(self.log_dir_path / 'log.log')
+        fh.setLevel(logging.DEBUG)
+        self.logger.addHandler(fh)
+
+        self.logger.info("Configuration completed.")
+        self.logger.info(f"Using random seed {self.seed}")
+        print(f"\tUsing random seed {self.seed}")
 
     @classmethod
     def from_config(cls, config_path, log_dir=None, overwrite=False):
@@ -117,7 +131,8 @@ class MapElites(ABC):
 
         # RANDOM SEED
         seed = config['mapelites'].getint('seed')
-        np.random.seed(seed)
+        if not seed:
+            seed = np.random.randint(0, 100)
 
         # MAIN MAPELITES CONF
         iterations = config['mapelites'].getint('iterations')
@@ -213,6 +228,7 @@ class MapElites(ABC):
             log_dir=log_dir,
             config_path=config_path,
             overwrite_log_dir=overwrite,
+            seed=seed,
             bins=bins
         )
 
@@ -221,7 +237,7 @@ class MapElites(ABC):
         Bootstrap the algorithm by generating `self.bootstrap_individuals` individuals
         randomly sampled from a uniform distribution
         """
-        logging.info("Generate initial population")
+        self.logger.info("Generate initial population")
         for _ in range(0, self.random_solutions):
             x = self.generate_random_solution()
             # add solution to elites computing features and performance
@@ -237,11 +253,11 @@ class MapElites(ABC):
         # tqdm: progress bar
         with tqdm(total=self.iterations, desc="Iterations completed") as pbar:
             for i in range(0, self.iterations):
-                logging.info(f"ITERATION {i}")
+                self.logger.info(f"ITERATION {i}")
                 if self.stopping_criteria():
                     break
 
-                logging.info("Select and mutate.")
+                self.logger.info("Select and mutate.")
                 # get the index of a random individual from the map of elites
                 ind = self.random_selection(individuals=1)[0]
                 # mutate the individual
@@ -272,11 +288,11 @@ class MapElites(ABC):
         perf = self.performance_measure(x)
         # place operator performs either minimization or maximization
         if self.place_operator(perf, self.performances[b]):
-            logging.info(f"PLACE: Placing individual {x} at {b} with perf: {perf}")
+            self.logger.info(f"PLACE: Placing individual {x} at {b} with perf: {perf}")
             self.performances[b] = perf
             self.solutions[b] = x
         else:
-            logging.info(f"PLACE: Individual {x} rejected at {b} with perf: {perf} in favor of {self.performances[b]}")
+            self.logger.info(f"PLACE: Individual {x} rejected at {b} with perf: {perf} in favor of {self.performances[b]}")
         if pbar is not None:
             pbar.update(1)
 
