@@ -35,7 +35,7 @@ class MapElites(ABC):
                  overwrite_log_dir,
                  config_path,
                  seed,
-                 minimization=True,
+                 minimization=True
                  ):
         """
         :param iterations: Number of evolutionary iterations
@@ -92,10 +92,6 @@ class MapElites(ABC):
         )
         self.performances = np.full(ft_bins, np.inf)
 
-        # configure logging
-        # empty log file from potential previous logs
-        open('log.log', 'w').close()
-
         if log_dir:
             self.log_dir_path = Path(log_dir)
         else:
@@ -125,6 +121,7 @@ class MapElites(ABC):
         Read config file and create a MAP-Elites instance.
         :param config_path: Path to config.ini file
         :param log_dir: Absolute path to logging directory
+        :param overwrite: Overwrite the log directory if already exists
         """
         # Read configuration file
         config = configparser.ConfigParser()
@@ -143,6 +140,7 @@ class MapElites(ABC):
         # PLOTTING CONF
         plot_args = dict()
         plot_args['highlight_best'] = config['plotting'].getboolean('highlight_best')
+        plot_args['interactive'] = config['mapelites'].getboolean('interactive')
 
         # OPTIMIZATION FUNCTION
         function_name = config['opt_function']['name']
@@ -353,12 +351,6 @@ class MapElites(ABC):
             return tuple(zeros)
 
         def _take_min(indices):
-            # min_v = np.inf
-            # for idx in indices:
-            #     _t = self.performances[idx].min()
-            #     if _t < min_v:
-            #         min_v = _t
-            # return min_v
             return np.array([self.performances[idx].min() for idx in indices]).min()
 
         d = len(self.performances.shape)

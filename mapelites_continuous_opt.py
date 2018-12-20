@@ -7,8 +7,6 @@ import numpy as np
 from map_elites.mapelites import MapElites
 from map_elites.feature_dimension import FeatureDimension
 
-logging.basicConfig(filename="log.log", level=logging.INFO)
-
 
 class MapElitesContinuousOpt(MapElites):
 
