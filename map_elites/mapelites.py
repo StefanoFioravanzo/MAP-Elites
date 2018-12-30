@@ -108,7 +108,7 @@ class MapElites(ABC):
         self.logger.setLevel(logging.DEBUG)
         # create file handler which logs even debug messages
         fh = logging.FileHandler(self.log_dir_path / 'log.log', mode='w')
-        fh.setLevel(logging.DEBUG)
+        fh.setLevel(logging.INFO)
         self.logger.addHandler(fh)
 
         self.logger.info("Configuration completed.")
@@ -257,11 +257,11 @@ class MapElites(ABC):
         # tqdm: progress bar
         with tqdm(total=self.iterations, desc="Iterations completed") as pbar:
             for i in range(0, self.iterations):
-                self.logger.info(f"ITERATION {i}")
+                self.logger.debug(f"ITERATION {i}")
                 if self.stopping_criteria():
                     break
 
-                self.logger.info("Select and mutate.")
+                self.logger.debug("Select and mutate.")
                 # get the index of a random individual from the map of elites
                 ind = self.random_selection(individuals=1)[0]
                 # mutate the individual
@@ -292,11 +292,11 @@ class MapElites(ABC):
         perf = self.performance_measure(x)
         # place operator performs either minimization or maximization
         if self.place_operator(perf, self.performances[b]):
-            self.logger.info(f"PLACE: Placing individual {x} at {b} with perf: {perf}")
+            self.logger.debug(f"PLACE: Placing individual {x} at {b} with perf: {perf}")
             self.performances[b] = perf
             self.solutions[b] = x
         else:
-            self.logger.info(f"PLACE: Individual {x} rejected at {b} with perf: {perf} in favor of {self.performances[b]}")
+            self.logger.debug(f"PLACE: Individual {x} rejected at {b} with perf: {perf} in favor of {self.performances[b]}")
         if pbar is not None:
             pbar.update(1)
 

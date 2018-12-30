@@ -32,7 +32,7 @@ class MapElitesContinuousOpt(MapElites):
         """
         Apply the fitness continuous function to x
         """
-        self.logger.info("calculate performance measure")
+        self.logger.debug("calculate performance measure")
         return self.F.evaluate(x)
 
     def generate_random_solution(self):
@@ -41,7 +41,7 @@ class MapElitesContinuousOpt(MapElites):
         the first solutions in the feature space, so that we start
         filling the bins
         """
-        self.logger.info("Generate random solution")
+        self.logger.debug("Generate random solution")
 
         dimensions = self.F.get_domain()
         return np.array([
@@ -89,7 +89,7 @@ def main():
         config_path = args.conf
     else:
         config_path = 'config.ini'
-    print(f"Start time {datetime.strftime(datetime.now(), "%Y%M%d-%H%M%S")}")
+    print(f"Start time {datetime.strftime(datetime.now(), '%Y%M%d-%H%M%S')}")
     print(f"\tUsing config file: {config_path}")
     print(f"\tUsing log dir: {args.logdir}")
 
@@ -98,7 +98,7 @@ def main():
                                                func=args.func,
                                                overwrite=args.overwrite)
     map_E.run()
-    print(f"End time {datetime.strftime(datetime.now(), "%Y%M%d-%H%M%S")}")
+    print(f"End time {datetime.strftime(datetime.now(), '%Y%M%d-%H%M%S')}")
 
 
 if __name__ == "__main__":
