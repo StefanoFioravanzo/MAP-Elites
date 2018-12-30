@@ -2,6 +2,7 @@ import logging
 import argparse
 
 import numpy as np
+from datetime import datetime
 
 # local imports
 from map_elites.mapelites import MapElites
@@ -88,6 +89,7 @@ def main():
         config_path = args.conf
     else:
         config_path = 'config.ini'
+    print(f"Start time {datetime.strftime(datetime.now(), "%Y%M%d-%H%M%S")}")
     print(f"\tUsing config file: {config_path}")
     print(f"\tUsing log dir: {args.logdir}")
 
@@ -96,6 +98,7 @@ def main():
                                                func=args.func,
                                                overwrite=args.overwrite)
     map_E.run()
+    print(f"End time {datetime.strftime(datetime.now(), "%Y%M%d-%H%M%S")}")
 
 
 if __name__ == "__main__":
