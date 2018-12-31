@@ -28,6 +28,7 @@ class MapElites(ABC):
                  bootstrap_individuals,
                  mutation_op,
                  mutation_args,
+                 crossover_flag,
                  crossover_op,
                  crossover_args,
                  bins,
@@ -45,6 +46,7 @@ class MapElites(ABC):
         :param bootstrap_individuals: Number of individuals randomly generated to bootstrap the algorithm
         :param mutation_op: Mutation function
         :param mutation_args: Mutation function arguments
+        :param crossover_flag: Flag to activate crossover behavior
         :param crossover_op: Crossover function
         :param crossover_args: Crossover function arguments
         :param bins: Bins for feature dimensions
@@ -73,6 +75,7 @@ class MapElites(ABC):
         self.mutation_args = mutation_args
         # add to the mutation args the boundaries (domain) of the optimization function
         self.mutation_args['boundaries'] = self.F.get_domain()
+        self.crossover_flag = crossover_flag
         self.crossover_op = crossover_op
         self.crossover_args = crossover_args
 
@@ -209,6 +212,7 @@ class MapElites(ABC):
                 "boundary_management": mutation_boundary_management
             }
 
+        crossover_flag = config['crossover'].getboolean("crossover")
         crossover_op = config['crossover']['type']
         crossover_fun = f"{str.lower(crossover_op)}_crossover"
         if crossover_fun not in ea_operators:
@@ -227,6 +231,7 @@ class MapElites(ABC):
             bootstrap_individuals=bootstrap_individuals,
             mutation_op=mutation_fun,
             mutation_args=mutation_args,
+            crossover_flag=crossover_flag,
             crossover_op=crossover_fun,
             crossover_args=crossover_args,
             minimization=minimization,
@@ -265,10 +270,17 @@ class MapElites(ABC):
                     break
 
                 self.logger.debug("Select and mutate.")
-                # get the index of a random individual from the map of elites
-                ind = self.random_selection(individuals=1)[0]
-                # mutate the individual
-                ind = self.mutation_op(ind, **self.mutation_args)[0]
+                # get the number of elements that have already been initialized
+                if self.crossover_flag and \
+                        (np.prod(self.performances.shape) - np.sum(np.isinf(self.performances))) > 1:
+                    inds = self.random_selection(individuals=2)
+                    ind = self.crossover_op(inds[0], inds[1], **self.crossover_args)[0]
+                    ind = self.mutation_op(ind, **self.mutation_args)[0]
+                else:
+                    # get the index of a random individual from the map of elites
+                    ind = self.random_selection(individuals=1)[0]
+                    # mutate the individual
+                    ind = self.mutation_op(ind, **self.mutation_args)[0]
                 # place the new individual in the map of elites
                 self.place_in_mapelites(ind, pbar=pbar)
 
@@ -305,6 +317,7 @@ class MapElites(ABC):
         if pbar is not None:
             pbar.update(1)
 
+    # TODO: Here we might get stuck in infinite loop in case the map of elites does not have at least `individuals` initialized elements
     def random_selection(self, individuals=1):
         """
         Select an elite x from the current map of elites.
@@ -332,6 +345,7 @@ class MapElites(ABC):
             :return: Boolean
             """
             return any([x == np.nan or np.abs(x) == np.inf for x in self.solutions[index]])
+
 
         # individuals
         inds = list()
