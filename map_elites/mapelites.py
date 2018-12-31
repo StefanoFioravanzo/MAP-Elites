@@ -1,3 +1,4 @@
+import time
 import logging
 import operator
 import configparser
@@ -52,6 +53,7 @@ class MapElites(ABC):
         # set random seed
         self.seed = seed
         np.random.seed(self.seed)
+        self.elapsed_time = 0
 
         self.minimization = minimization
         # set the choice operator either to do a minimization or a maximization
@@ -251,6 +253,7 @@ class MapElites(ABC):
         """
         Main iteration loop of MAP-Elites
         """
+        start_time = time.time()
         # start by creating an initial set of random solutions
         self.generate_initial_population()
 
@@ -270,6 +273,8 @@ class MapElites(ABC):
                 self.place_in_mapelites(ind, pbar=pbar)
 
         # save results, display metrics and plot statistics
+        end_time = time.time()
+        self.elapsed_time = end_time - start_time
         self.save_logs()
         self.plot_map_of_elites()
 
@@ -389,6 +394,7 @@ class MapElites(ABC):
         self.logger.info(f"Best overall value: {best_perf}"
                          f" produced by individual {best_ind}"
                          f" and placed at {self.map_x_to_b(best_ind)}")
+        self.logger.info(f"Running time {time.strftime('%H:%M:%S', time.gmtime(self.elapsed_time))}")
 
         np.save(self.log_dir_path / 'performances', self.performances)
         np.save(self.log_dir_path / "solutions", self.solutions)
@@ -411,6 +417,9 @@ class MapElites(ABC):
                      savefig_path=self.log_dir_path,
                      title=f"{self.F.__class__.__name__} function",
                      **self.plot_args)
+
+    def get_elapsed_time(self):
+        return self.elapsed_time
 
     def stopping_criteria(self):
         """

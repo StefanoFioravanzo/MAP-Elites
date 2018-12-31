@@ -1,4 +1,4 @@
-import logging
+import time
 import argparse
 
 import numpy as np
@@ -89,7 +89,6 @@ def main():
         config_path = args.conf
     else:
         config_path = 'config.ini'
-    print(f"Start time {datetime.strftime(datetime.now(), '%Y%M%d-%H%M%S')}")
     print(f"\tUsing config file: {config_path}")
     print(f"\tUsing log dir: {args.logdir}")
 
@@ -98,7 +97,7 @@ def main():
                                                func=args.func,
                                                overwrite=args.overwrite)
     map_E.run()
-    print(f"End time {datetime.strftime(datetime.now(), '%Y%M%d-%H%M%S')}")
+    print(f"Running time {time.strftime('%H:%M:%S', time.gmtime(map_E.get_elapsed_time()))}")
 
 
 if __name__ == "__main__":
