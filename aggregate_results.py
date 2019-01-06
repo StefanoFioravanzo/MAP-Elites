@@ -7,10 +7,16 @@ from pathlib import Path
 import numpy as np
 
 
+def listdir_nohidden(path):
+    for f in os.listdir(path):
+        if not f.startswith('.'):
+            yield f
+
+
 def main(logdir_path):
     logdir = Path(logdir_path)
     results = dict()
-    for c in os.listdir(logdir):
+    for c in sorted(listdir_nohidden(logdir)):
         min_sol = np.inf
         min_perf = np.inf
         max_sol = -np.inf
@@ -18,7 +24,7 @@ def main(logdir_path):
         min_avg = list()
         max_avg = list()
 
-        for r in os.listdir(logdir / c):
+        for r in listdir_nohidden(logdir / c):
             solutions = np.load(logdir / c / r / "solutions.npy")
             performances = np.load(logdir / c / r / "performances.npy")
             performances[performances == np.inf] = np.nan

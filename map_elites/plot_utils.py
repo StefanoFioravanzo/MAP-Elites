@@ -21,9 +21,9 @@ def plot_heatmap(data,
     # get data dimensionality
     d = data.shape
 
-    # Show plot annotations just when we have two dimensions
-    # With higher dimensions there woould not be enough space
-    if len(d) == 2:
+    # Show plot annotations just when we have most two dimensions
+    # With higher dimensions there would not be enough space
+    if len(d) == 1 or len(d) == 2:
         plot_annotations = True
 
     # reshape data to obtain a 2d heatmap
