@@ -741,7 +741,7 @@ class C06(ConstrainedFunction):
         if dimensions > len(self.o):
             raise ValueError("Dimensions cannot be higher than o vector")
 
-        if dimensions != 10 or dimensions != 30:
+        if dimensions != 10 and dimensions != 30:
             raise ValueError(f"Dimensions must be 10 or 30 for function {self.__class__.__name__}")
 
         super().__init__(dimensions)
@@ -1366,7 +1366,7 @@ class C10(ConstrainedFunction):
         if dimensions > len(self.o):
             raise ValueError("Dimensions cannot be higher than o vector")
 
-        if dimensions != 10 or dimensions != 30:
+        if dimensions != 10 and dimensions != 30:
             raise ValueError(f"Dimensions must be 10 or 30 for function {self.__class__.__name__}")
 
         super().__init__(dimensions)
@@ -1628,7 +1628,7 @@ class C11(ConstrainedFunction):
         if dimensions > len(self.o):
             raise ValueError("Dimensions cannot be higher than o vector")
 
-        if dimensions != 10 or dimensions != 30:
+        if dimensions != 10 and dimensions != 30:
             raise ValueError(f"Dimensions must be 10 or 30 for function {self.__class__.__name__}")
 
         super().__init__(dimensions)
@@ -2082,7 +2082,7 @@ class C15(ConstrainedFunction):
         if dimensions > len(self.o):
             raise ValueError("Dimensions cannot be higher than o vector")
 
-        if dimensions != 10 or dimensions != 30:
+        if dimensions != 10 and dimensions != 30:
             raise ValueError(f"Dimensions must be 10 or 30 for function {self.__class__.__name__}")
 
         super().__init__(dimensions)
