@@ -25,7 +25,7 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 
 functions=("01" "02" "03" "04" "05" "06" "07" "08" "09" "10" "11" "12" "13" "14" "15" "16" "17" "18")
 
-if [[ -z ${LOGPATH+x} ]] && [[ ! -z ${DELETE_SESSIONS+x} ]]
+if [[ -z ${LOGPATH+x} ]] && [[ -z ${DELETE_SESSIONS+x} ]]
 then
     echo Log path not set
     exit 1
@@ -38,7 +38,7 @@ do
     if [[ -z ${DELETE_SESSIONS+x} ]]
     then
         echo Creating ${i}
-        tmux new-session -d -s C${i} ./run.sh -r 25 -f C${i} -c ./config.ini -l ./logs/run2/C${i}
+        tmux new-session -d -s C${i} ./run.sh -r 25 -f C${i} -c ./config.ini -l ${LOGPATH}C${i}
     else
         echo Deleting ${i}
         tmux kill-session -t C${i}
