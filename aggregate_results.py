@@ -75,6 +75,8 @@ def main(logdir_path, dimensions):
         # feasibility rate
         fes = 0
         for r in listdir_nohidden(logdir / c):
+            if r == "plots":
+                continue
             s = np.load(logdir / c/ r / "solutions.npy")
             p = np.load(logdir / c / r / "performances.npy")
             if len(performances) == 0:
@@ -184,4 +186,4 @@ if __name__ == "__main__":
     parser.add_argument('--dimensions', type=int, help='Dimensionality of evaluation function', required=True)
     args = parser.parse_args()
     results = main(args.logdir, args.dimensions)
-    print_table_rev(results)
+    print_table(results)
