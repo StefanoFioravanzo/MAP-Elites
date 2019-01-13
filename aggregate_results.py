@@ -150,9 +150,6 @@ def main(logdir_path, dimensions):
                     # add constraint violation to mean_violations
                     mean_violations.append(function_obj.constraints()[cost]['func'](solutions[idx_median]))
 
-            print(cost)
-            print(k)
-            print(idx_median)
             # violation > 0.0001
             if idx_median[k+1] == 2:
                 consts_median_specific[0] += 1
@@ -163,9 +160,7 @@ def main(logdir_path, dimensions):
             if idx_median[k+1] == 4:
                 consts_median_specific[2] += 1
 
-        print(consts_median_specific)
-        print(consts_median)
-        assert sum(consts_median_specific) == consts_median
+#         assert sum(consts_median_specific) == consts_median
 
         results[c] = {
             "best_perf": round(best, 2),
@@ -177,7 +172,7 @@ def main(logdir_path, dimensions):
             "mean": round(mean, 2),
             "std": round(std, 2),
             "c": consts_median_specific,
-            "v": round(np.mean(mean_violations), 2),
+            "v": round(np.mean(mean_violations), 2) if len(mean_violations) > 0 else 0,
             "f_rate": round(fes / runs, 2)
         }
 
