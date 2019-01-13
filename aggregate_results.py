@@ -15,41 +15,49 @@ def listdir_nohidden(path):
             yield f
 
             
+def number_to_str(n):
+    if n > 1000:
+        return "{0:.4e}".format(n)
+    else:
+        return "{0:.2f}".format(n)
+
+
 def print_table(results):
-    print("Function &Best &Worst &Median &$c$ &$\\bar\{v\}$ &Mean &Std\\\\")
+    print("Function &Best &Worst &Median &$c$ &$\\bar\{v\}$ &Mean &Std & FRate\\\\")
     print("\\midrule")
     for k, v in results.items():
-        print("{0} &{1:.2f}({2}) &{3:.2f}({4}) &{5:.2f}({6}) &{7} &{8} &{9:.2f} &{10:.2f}\\\\".format(k, 
-                                                                                         v['best_perf'], 
+        print("{0} &{1}({2}) &{3}({4}) &{5}({6}) &{7} &{8} &{9} &{10} &{11}\\\\".format(k, 
+                                                                                         number_to_str(v['best_perf']), 
                                                                                          v['best_consts'], 
-                                                                                         v['worst_perf'], 
+                                                                                         number_to_str(v['worst_perf']), 
                                                                                          v['worst_consts'], 
-                                                                                         v['median_perf'],
+                                                                                         number_to_str(v['median_perf']),
                                                                                          v['median_consts'],
                                                                                          tuple(v['c']),
-                                                                                         v['v'],
-                                                                                         v['mean'],
-                                                                                         v['std']
+                                                                                         number_to_str(v['v']),
+                                                                                         number_to_str(v['mean']),
+                                                                                         number_to_str(v['std']),
+                                                                                         v['f_rate']
                                                                                          ))
 
 
 def print_table_rev(results):
-        key_order = [("best_perf", "Best"), ("worst_perf", "Worst"), ("median_perf", "Median"), ("c", "$c$"), ("v", "$\\bar{v}$"), ("mean", "Mean"), ("std", "Std"), ("f_rate", "Feasibility Rate")]
-        print("\\begin{tabular}{c|cccc}")
-        print("\\toprule")
-        print("&" + "&".join(results.keys()) + "\\\\")
-        print("\\midrule")
-        for k, n in key_order:
-            if k == "best_perf":
-                to_print = [f"{h[0]}({h[1]})" for h in list(zip([str(d["best_perf"]) for d in results.values()], [str(d["best_consts"]) for d in results.values()]))]
-                print(n + "&" + "&".join(to_print) + "\\\\")
-            elif k == "worst_perf":
-                to_print = [f"{h[0]}({h[1]})" for h in list(zip([str(d["worst_perf"]) for d in results.values()], [str(d["worst_consts"]) for d in results.values()]))]
-                print(n + "&" + "&".join(to_print) + "\\\\")
-            else:
-                print(n + "&" + "&".join([str(d[k]) for d in results.values()]) + "\\\\")
-        print("\\bottomrule")
-        print("\\end{tabular}")
+    key_order = [("best_perf", "Best"), ("worst_perf", "Worst"), ("median_perf", "Median"), ("c", "$c$"), ("v", "$\\bar{v}$"), ("mean", "Mean"), ("std", "Std"), ("f_rate", "F Rate")]
+    print("\\begin{tabular}{c|cccc}")
+    print("\\toprule")
+    print("&" + "&".join(results.keys()) + "\\\\")
+    print("\\midrule")
+    for k, n in key_order:
+        if k == "best_perf":
+            to_print = [f"{h[0]}({h[1]})" for h in list(zip([str(d["best_perf"]) for d in results.values()], [str(d["best_consts"]) for d in results.values()]))]
+            print(n + "&" + "&".join(to_print) + "\\\\")
+        elif k == "worst_perf":
+            to_print = [f"{h[0]}({h[1]})" for h in list(zip([str(d["worst_perf"]) for d in results.values()], [str(d["worst_consts"]) for d in results.values()]))]
+            print(n + "&" + "&".join(to_print) + "\\\\")
+        else:
+            print(n + "&" + "&".join([str(d[k]) for d in results.values()]) + "\\\\")
+    print("\\bottomrule")
+    print("\\end{tabular}")
 
         
 def main(logdir_path, dimensions):
@@ -142,15 +150,22 @@ def main(logdir_path, dimensions):
                     # add constraint violation to mean_violations
                     mean_violations.append(function_obj.constraints()[cost]['func'](solutions[idx_median]))
 
+            print(cost)
+            print(k)
+            print(idx_median)
             # violation > 0.0001
-            if idx_median[k+1] == 1:
+            if idx_median[k+1] == 2:
                 consts_median_specific[0] += 1
             # violation > 0.01
-            if idx_median[k+1] == 2:
+            if idx_median[k+1] == 3:
                 consts_median_specific[1] += 1
             # violation > 1.0
-            if idx_median[k+1] == 3:
+            if idx_median[k+1] == 4:
                 consts_median_specific[2] += 1
+
+        print(consts_median_specific)
+        print(consts_median)
+        assert sum(consts_median_specific) == consts_median
 
         results[c] = {
             "best_perf": round(best, 2),
