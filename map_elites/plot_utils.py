@@ -23,8 +23,8 @@ def plot_heatmap(data,
 
     # Show plot annotations just when we have most two dimensions
     # With higher dimensions there would not be enough space
-    if len(d) == 1 or len(d) == 2:
-        plot_annotations = True
+    # if len(d) == 1 or len(d) == 2:
+    #     plot_annotations = True
 
     # reshape data to obtain a 2d heatmap
     if len(d) == 1:
@@ -66,7 +66,7 @@ def plot_heatmap(data,
         else:
             best = df_data.max().max()
         title = f"{title} - red cell: best value"
-        sns.heatmap(df_data, mask=df_data != best, cmap="Reds_r", cbar=False)
+        sns.heatmap(df_data, mask=df_data != best, cmap="Reds_r", annot=plot_annotations, cbar=False)
 
     ax.set_title(title)
     ax.invert_yaxis()
@@ -133,6 +133,7 @@ def plot_heatmap(data,
         ht_figure.savefig(savefig_path / "heatmap.pdf", dpi=400)
     if interactive:
         plt.show()
+    plt.close()
 
 
 def _test_plotting():
