@@ -1,8 +1,6 @@
 ## MAP-Elites for Constrained Optimization
 
-Python implementation of the MAP Elites algorithm.
-
-**TODO**: Add short explanation of MAP Elites
+Python implementation of the [MAP Elites algorithm](https://arxiv.org/abs/1504.04909) (originally devised for unconstrained optimization), for constrained optimization problems. More details can be found in our original [GECCO paper](https://dl.acm.org/doi/10.1145/3319619.3321939) and its [extended arXiv version](https://arxiv.org/abs/1902.00703).
 
 #### Implementation
 
@@ -25,8 +23,6 @@ Python implementation of the MAP Elites algorithm.
 
 The algorithm is implemented to be as general as possible and applicable to any setting. The main MAPElites class in `mapelites.py` is an abstract class implementing all the base logic common to any instance of the algorithm.  
 To run the algorithm you need to subclass `MapElites` and implement `map_x_to_b()`, `performance_measure()`, `generate_random_solution()`, `generate_feature_dimensions()`. Refer to the functions documentation and the example below for more details.
-
-**TODO**: Talk about FeatureDimension class
 
 MAP-Elites was designed to have a visual impact by showing its results in a heatmap plot in the feature dimensions. This implementation supports up to 4 dimensional heatmap plotting, with nested dimensions in the same plot. Refer to the `plot_heatmap()` function in `plot_utils.py` for more details.
 
@@ -92,8 +88,6 @@ indpb = 0.5
 ## Example: Continuous Constrained Optimization
 
 In this project we extended the core MAP-Elites algorithm to solve continuous constrained optimization problem. Specifically, the problem setting is defined by an objective function subject to some constraints, some examples [here](https://en.wikipedia.org/wiki/Test_functions_for_optimization#Test_functions_for_constrained_optimization).
-
-**TODO**: Extend this part
 
 ## Reference
 
