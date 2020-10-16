@@ -97,4 +97,21 @@ In this project we extended the core MAP-Elites algorithm to solve continuous co
 
 ## Reference
 
-Mouret, J. B., & Clune, J. (2015). Illuminating search spaces by mapping elites. arXiv preprint arXiv:1504.04909. [[http://arxiv.org/abs/1504.04909](http://arxiv.org/abs/1504.04909)]
+If you use this code (or any modified version of it), please add the following reference:
+
+```
+Stefano Fioravanzo and Giovanni Iacca. 2019. Evaluating MAP-Elites
+on constrained optimization problems. In Proceedings of the Genetic 
+and Evolutionary Computation Conference Companion (GECCO '19). 
+Association for Computing Machinery, New York, NY, USA, 253–254. 
+DOI:https://doi.org/10.1145/3319619.3321939
+
+@inproceedings{fioravanzo2019evaluating,
+  title={Evaluating MAP-Elites on Constrained Optimization Problems},
+  author={Fioravanzo, Stefano and Iacca, Giovanni},
+  booktitle={Genetic and Evolutionary Computation Conference Companion},
+  pages={253--254},
+  year={2019},
+  organization={ACM}
+}
+```
